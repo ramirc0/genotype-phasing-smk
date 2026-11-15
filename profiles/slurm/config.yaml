@@ -21,9 +21,12 @@ slurm-init-seconds-before-status-checks: 10
 # z1076 cannot read /data. z1056 and z1081 lost their /data mount on 2026-11-05.
 slurm-exclude-failed-nodes: z1056,z1076,z1081
 
+# Scheduling is FIFO plus backfill. A job may start in any partition whose time
+# limit fits its runtime, so each lists them all.
 default-resources:
   runtime: 30m
   mem_mb: 4000 * attempt
+  slurm_partition: 30mins,4hours,12hours,5days
 
 set-threads:
   prepare_genotypes: 4
@@ -47,64 +50,64 @@ set-resources:              # tune from benchmarks/ TSVs after a real run
   prepare_genotypes:
     mem_mb: 8000 * attempt
     runtime: 720m
-    slurm_partition: 12hours
+    slurm_partition: 12hours,5days
   phase_shapeit5:
     mem_mb: 64000 * attempt
     runtime: 720m
-    slurm_partition: 12hours
+    slurm_partition: 12hours,5days
   phase_eagle2:
     mem_mb: 64000 * attempt
     runtime: 720m
-    slurm_partition: 12hours
+    slurm_partition: 12hours,5days
   finalize_phased:
     mem_mb: 4000 * attempt
     runtime: 240m
-    slurm_partition: 4hours
+    slurm_partition: 4hours,12hours,5days
   export_pgen:
     mem_mb: 16000 * attempt
     runtime: 240m
-    slurm_partition: 4hours
+    slurm_partition: 4hours,12hours,5days
   array_genotypes:
     mem_mb: 4000 * attempt
     runtime: 240m
-    slurm_partition: 4hours
+    slurm_partition: 4hours,12hours,5days
   cohort_array_pgen:
     mem_mb: 16000 * attempt
     runtime: 240m
-    slurm_partition: 4hours
+    slurm_partition: 4hours,12hours,5days
   relatedness:
     mem_mb: 16000 * attempt
     runtime: 240m
-    slurm_partition: 4hours
+    slurm_partition: 4hours,12hours,5days
   genetic_pcs:
     mem_mb: 16000 * attempt
     runtime: 240m
-    slurm_partition: 4hours
+    slurm_partition: 4hours,12hours,5days
   reference_candidates:
     mem_mb: 4000 * attempt
     runtime: 30m
   match_array_sites:
     mem_mb: 4000 * attempt
     runtime: 240m
-    slurm_partition: 4hours
+    slurm_partition: 4hours,12hours,5days
   make_lai_maps:
     mem_mb: 2000 * attempt
     runtime: 30m
   admixture:
     mem_mb: 32000 * attempt
     runtime: 720m
-    slurm_partition: 12hours
+    slurm_partition: 12hours,5days
   select_reference:
     mem_mb: 4000 * attempt
     runtime: 30m
   local_ancestry_rfmix2:
     mem_mb: 64000 * attempt
     runtime: 720m
-    slurm_partition: 12hours
+    slurm_partition: 12hours,5days
   plot_local_ancestry:
     mem_mb: 32000 * attempt
     runtime: 240m
-    slurm_partition: 4hours
+    slurm_partition: 4hours,12hours,5days
 
 rerun-incomplete: true
 keep-going: true
