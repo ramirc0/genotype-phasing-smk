@@ -1,5 +1,6 @@
 include: "rules/common.smk"
 include: "rules/prepare.smk"
+include: f"rules/{config['phaser']}.smk"
 include: "rules/phase.smk"
 include: "rules/provenance.smk"
 

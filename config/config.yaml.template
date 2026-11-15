@@ -9,10 +9,11 @@ exclude_samples: config/<run_id>/exclude_samples.tsv
 chromosomes: [chr1, chr2, chr3, chr4, chr5, chr6, chr7, chr8, chr9, chr10, chr11,
               chr12, chr13, chr14, chr15, chr16, chr17, chr18, chr19, chr20, chr21, chr22]
 
-phaser: shapeit5
+phaser: shapeit5         # or eagle2
 panel: /data/zusers/ramirezc/data/genotype-phasing-smk/resources/hgdp1kgp/{region}.bcf
 genetic_maps:
   shapeit5: /data/zusers/ramirezc/data/genotype-phasing-smk/resources/genetic-maps/shapeit5/{region}.b38.gmap.gz
+  eagle2: /data/zusers/ramirezc/data/genotype-phasing-smk/resources/genetic-maps/eagle2/genetic_map_hg38_withX.txt.gz
 
 filters:
   min_dp: 10             # genotypes below this depth go missing

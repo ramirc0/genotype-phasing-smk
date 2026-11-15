@@ -20,10 +20,16 @@ Each chromosome runs on its own:
    no sample gains a REF allele it lacks, and drops `*` alleles. Genotypes with
    depth below `min_dp` go missing. Sites below `min_maf` or above
    `max_missing` are dropped. Only GT is kept.
-2. `phase_shapeit5` phases with SHAPEIT5 `phase_common` against the reference
-   panel. Panel and cohort haplotypes condition each other. Missing genotypes
-   are imputed. Sites absent from the panel are dropped, and the log counts
-   them. The SHAPEIT5 docs skip `phase_rare` below 2,000 samples.
+2. The phaser set by `phaser` phases against the reference panel. Both
+   phasers impute missing genotypes and drop sites absent from the panel, and
+   their logs count them.
+   - `phase_shapeit5` (default) runs SHAPEIT5 `phase_common`. Panel and cohort
+     haplotypes condition each other. The SHAPEIT5 docs skip `phase_rare` below
+     2,000 samples.
+   - `phase_eagle2` runs Eagle2, the SOP's phaser. Eagle's auto rule runs one
+     iteration when the cohort is under half the panel, which phases each
+     sample against the panel alone. The rule sets `--pbwtIters 2`, so cohort
+     haplotypes inform each other.
 3. `finalize_phased` recomputes AC, AN, AF and MAF and sets each ID to
    `CHROM:POS:REF:ALT`.
 4. `export_pgen` writes a plink2 pgen copy, which keeps the phase. Its
@@ -45,7 +51,9 @@ workflow/
   rules/
     common.smk           config, path constants, helpers
     prepare.smk          per-chromosome genotype filters
-    phase.smk            phasing, final phased VCFs, pgen copies
+    shapeit5.smk         phasing with SHAPEIT5
+    eagle2.smk           phasing with Eagle2
+    phase.smk            final phased VCFs, pgen copies
     provenance.smk       resolved config snapshot
   scripts/
     fetch_resources.sh   downloads the panel, genetic maps and array manifest
@@ -110,7 +118,7 @@ for pixi deployment and SLURM. The rule envs live in a second pixi workspace,
 `workflow/envs/`. Its `pixi.lock` pins every package. An `onstart` hook
 installs it before the first job, because parallel SLURM jobs would otherwise
 race to install it. `default` runs bcftools and plink2. SHAPEIT5 pins htslib
-below 1.25, so it runs in its own env, `shapeit5`. Both workspaces exclude
+below 1.25, and so does Eagle2, so each runs in its own env. Both workspaces exclude
 packages published in the last 7 days. The exceptions are certifi, bcftools and htslib, so their security fixes
 land at once.
 
@@ -148,6 +156,7 @@ snakemake --profile profiles/local --configfile config/<run_id>/config.yaml     
 pixi run slurm <run_id>                                          # SLURM
 pixi run slurm <run_id> "all -n"                                 # targets and flags in one quoted arg
 pixi run test                                                    # end-to-end test on toy data
+pixi run test-options                                            # the same with the non-default options
 ```
 
 `pixi run slurm <run_id>` reads `config/<run_id>/config.yaml` and names every
@@ -163,9 +172,10 @@ belongs to.
 | `fasta` | Reference FASTA of the callset, with its `.fai` (and `.gzi` if bgzipped). |
 | `exclude_samples` | Headerless TSV of sample ID and reason. Lines starting with `#` are ignored. Every ID MUST be in the callset. |
 | `chromosomes` | Chromosomes to phase, `chr1` to `chr22`. |
-| `phaser` | `shapeit5`. |
+| `phaser` | `shapeit5` (default) or `eagle2`. The Snakefile includes only that phaser's rule file. |
 | `panel` | Phased reference panel BCF per region, with `{region}` in the path and a `.csi` beside it. |
 | `genetic_maps.shapeit5` | SHAPEIT5 genetic map per region, with `{region}` in the path. |
+| `genetic_maps.eagle2` | Eagle2 genetic map, one file for all chromosomes. |
 | `filters.min_dp` | Genotypes with lower depth go missing. Default `10`, as in the SOP. |
 | `filters.min_maf` | Sites with lower minor allele frequency are dropped. Default `0.01`, as in the SOP. |
 | `filters.max_missing` | Sites with a larger missing genotype fraction are dropped. Default `0.05`. |

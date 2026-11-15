@@ -28,6 +28,7 @@ default-resources:
 set-threads:
   prepare_genotypes: 4
   phase_shapeit5: 16
+  phase_eagle2: 16
   finalize_phased: 4
   export_pgen: 4
 
@@ -37,6 +38,10 @@ set-resources:              # tune from benchmarks/ TSVs after a real run
     runtime: 720m
     slurm_partition: 12hours
   phase_shapeit5:
+    mem_mb: 64000 * attempt
+    runtime: 720m
+    slurm_partition: 12hours
+  phase_eagle2:
     mem_mb: 64000 * attempt
     runtime: 720m
     slurm_partition: 12hours

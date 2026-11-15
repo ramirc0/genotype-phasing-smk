@@ -11,6 +11,7 @@ phaser: shapeit5
 panel: resources/panel/{region}.bcf
 genetic_maps:
   shapeit5: resources/maps/{region}.b38.gmap.gz
+  eagle2: resources/maps/genetic_map_hg38_withX.txt.gz
 
 filters:
   min_dp: 10

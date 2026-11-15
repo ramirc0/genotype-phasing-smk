@@ -1,0 +1,3 @@
+# Overrides for `pixi run test-options`: the non-default options.
+run_id: options
+phaser: eagle2

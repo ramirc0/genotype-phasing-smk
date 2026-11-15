@@ -17,6 +17,7 @@ BENCHDIR = f"benchmarks/{RUN_ID}"
 # The workspace path is relative to the rule file. Every rule file sits in rules/.
 SOFTWARE_ENV = pixi(workspace="../envs", env=config["pixi_env"], locked=True)
 SHAPEIT5_ENV = pixi(workspace="../envs", env="shapeit5", locked=True)
+EAGLE2_ENV = pixi(workspace="../envs", env="eagle2", locked=True)
 
 CALLSET = config["callset"]
 FASTA = config["fasta"]
@@ -33,7 +34,7 @@ if not set(CHROMOSOMES) <= set(AUTOSOMES):
 # Each region is phased on its own. bcftools and SHAPEIT5 read the span after the name.
 REGION_SPAN = {chrom: chrom for chrom in CHROMOSOMES}
 
-PHASERS = ("shapeit5",)
+PHASERS = ("shapeit5", "eagle2")
 if config["phaser"] not in PHASERS:
     raise WorkflowError(f"phaser MUST be one of {', '.join(PHASERS)}.")
 
