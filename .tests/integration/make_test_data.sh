@@ -20,6 +20,11 @@ declare -A span=(
 
 px() { pixi exec -c conda-forge -c bioconda -s bcftools==1.25 -s htslib==1.25 -s samtools==1.25 -s python==3.13 "$@"; }
 
+# A 1/* genotype leaves the half-call 1/. once * is dropped. A cohort has few per
+# site, so those sites pass max_missing. Plant one at a passing non-PAR site, in
+# a sample the test keeps.
+plant_half_call() { awk -F'\t' -v OFS='\t' '!/^#/ && $2 == 2836852 { $5 = $5 ",*"; sub(/^[^:]*/, "1/2", $11) } 1'; }
+
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 mkdir -p resources/panel resources/maps
@@ -70,7 +75,10 @@ px samtools faidx resources/reference.fa.gz
 px bcftools view -Ob -o "$tmp/chr20.bcf" "$jg_test/results/default/callset.final.vcf.gz"
 px bcftools view -S "$tmp/samples.txt" -r "$chrx_windows" -Ou "$nygc_chrx" \
     | px bcftools annotate -x INFO,^FORMAT/GT,FORMAT/DP -Ou \
-    | px bcftools +fixploidy -Ob -o "$tmp/chrX.bcf" -- -f 2
+    | px bcftools +fixploidy -Ou -- -f 2 \
+    | px bcftools view \
+    | plant_half_call \
+    | px bcftools view -Ob -o "$tmp/chrX.bcf"
 cmp <(px bcftools query -l "$tmp/chr20.bcf") <(px bcftools query -l "$tmp/chrX.bcf")
 px bcftools concat -Ob -o "$tmp/callset.bcf" "$tmp/chr20.bcf" "$tmp/chrX.bcf"
 px bcftools reheader --fai resources/reference.fa.gz.fai -o "$tmp/callset.reheader.bcf" "$tmp/callset.bcf"
