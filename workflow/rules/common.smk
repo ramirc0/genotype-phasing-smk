@@ -31,12 +31,25 @@ if not CHROMOSOMES or len(set(CHROMOSOMES)) != len(CHROMOSOMES):
 if not set(CHROMOSOMES) <= set(AUTOSOMES):
     raise WorkflowError("chromosomes MUST be autosomes, chr1 to chr22.")
 
+# Relatedness, PCs and ancestry use autosomes only.
+PHASED_AUTOSOMES = [chrom for chrom in CHROMOSOMES if chrom in AUTOSOMES]
+
 # Each region is phased on its own. bcftools and SHAPEIT5 read the span after the name.
 REGION_SPAN = {chrom: chrom for chrom in CHROMOSOMES}
 
 PHASERS = ("shapeit5", "eagle2")
 if config["phaser"] not in PHASERS:
     raise WorkflowError(f"phaser MUST be one of {', '.join(PHASERS)}.")
+
+LAI = config["local_ancestry"]
+LAI_TOOLS = ("rfmix2",)
+if LAI["tool"] not in LAI_TOOLS:
+    raise WorkflowError(f"local_ancestry.tool MUST be one of {', '.join(LAI_TOOLS)}.")
+if list(LAI["min_purity"]) != list(LAI["populations"]):
+    raise WorkflowError(
+        "local_ancestry.min_purity MUST list the ancestries of "
+        "local_ancestry.populations, in the same order."
+    )
 
 
 wildcard_constraints:

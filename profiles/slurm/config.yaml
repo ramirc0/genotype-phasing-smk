@@ -35,6 +35,13 @@ set-threads:
   cohort_array_pgen: 8
   relatedness: 8
   genetic_pcs: 8
+  reference_candidates: 1
+  match_array_sites: 2
+  make_lai_maps: 1
+  admixture: 16
+  select_reference: 1
+  local_ancestry_rfmix2: 16
+  plot_local_ancestry: 1
 
 set-resources:              # tune from benchmarks/ TSVs after a real run
   prepare_genotypes:
@@ -71,6 +78,31 @@ set-resources:              # tune from benchmarks/ TSVs after a real run
     slurm_partition: 4hours
   genetic_pcs:
     mem_mb: 16000 * attempt
+    runtime: 240m
+    slurm_partition: 4hours
+  reference_candidates:
+    mem_mb: 4000 * attempt
+    runtime: 30m
+  match_array_sites:
+    mem_mb: 4000 * attempt
+    runtime: 240m
+    slurm_partition: 4hours
+  make_lai_maps:
+    mem_mb: 2000 * attempt
+    runtime: 30m
+  admixture:
+    mem_mb: 32000 * attempt
+    runtime: 720m
+    slurm_partition: 12hours
+  select_reference:
+    mem_mb: 4000 * attempt
+    runtime: 30m
+  local_ancestry_rfmix2:
+    mem_mb: 64000 * attempt
+    runtime: 720m
+    slurm_partition: 12hours
+  plot_local_ancestry:
+    mem_mb: 32000 * attempt
     runtime: 240m
     slurm_partition: 4hours
 

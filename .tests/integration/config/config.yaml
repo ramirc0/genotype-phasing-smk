@@ -18,6 +18,17 @@ long_range_ld: resources/high-LD-regions-hg38-GRCh38.bed
 kinship_cutoff: 0.354    # the toy data has too few SNPs to estimate kinship below duplicates
 num_pcs: 5
 
+panel_metadata: resources/panel/gnomad_meta_updated.tsv
+local_ancestry:
+  tool: rfmix2
+  populations:
+    AFR: [YRI, ESN, GWD, MSL, LWK, Yoruba, Mandenka]
+    EUR: [CEU, GBR, IBS, TSI, French, Italian, Tuscan, Basque, Orcadian, Sardinian, Russian]
+    NAT: [PEL, MXL, Maya, Pima, Karitiana, Surui, Colombian]
+  min_purity: {AFR: 0.5, EUR: 0.5, NAT: 0.5}   # the toy span has too few SNPs for SOP purity
+  rfmix_generations: 8
+seed: 1
+
 filters:
   min_dp: 10
   min_maf: 0.01

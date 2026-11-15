@@ -3,6 +3,8 @@ include: "rules/prepare.smk"
 include: f"rules/{config['phaser']}.smk"
 include: "rules/phase.smk"
 include: "rules/relatedness.smk"
+include: "rules/ancestry.smk"
+include: f"rules/{config['local_ancestry']['tool']}.smk"
 include: "rules/provenance.smk"
 
 
@@ -18,4 +20,5 @@ rule all:
         expand(f"{OUTDIR}/pgen/{{chrom}}.pgen", chrom=CHROMOSOMES),
         f"{OUTDIR}/king.kin0",
         f"{OUTDIR}/pcs.tsv",
+        f"{OUTDIR}/local_ancestry_global.tsv",
         f"{OUTDIR}/config.snapshot.json",

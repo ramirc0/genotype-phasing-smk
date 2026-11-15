@@ -52,6 +52,25 @@ Across the genome:
    windows. It then projects every sample, so relatives get PCs on the same
    scale.
 
+8. `reference_candidates` lists the panel samples of the populations in
+   `local_ancestry.populations` that gnomAD does not flag as related.
+   `match_array_sites` keeps the array SNPs whose REF and ALT agree exactly
+   between the cohort and the candidates, because RFMix2 matches records by
+   position alone.
+9. `admixture` runs unsupervised ADMIXTURE on the unrelated cohort samples and
+   the candidates, with one component per ancestry, on pruned common SNPs.
+   `select_reference` matches ancestries to components one to one, by the
+   matching with the largest summed mean share of each ancestry's candidates.
+   A candidate joins the reference when its share of its own ancestry's
+   component exceeds `local_ancestry.min_purity`, as in the SOP. The cohort's
+   shares go to `global_ancestry.tsv`.
+10. The tool set by `local_ancestry.tool` calls local ancestry per chromosome.
+    `local_ancestry_rfmix2` runs RFMix2, the SOP's tool.
+11. `plot_local_ancestry` draws both haplotypes of every chromosome for 10
+    random samples, so tract lengths can be checked before mapping, as the SOP
+    asks. It sums each sample's tracts into genome-wide shares and plots them
+    against ADMIXTURE.
+
 The callset MUST code every genotype as diploid, as GATK joint genotyping at
 ploidy 2 does. Relatives stay in phasing. `unrelated.txt` filters samples at
 mapping.
@@ -73,10 +92,17 @@ workflow/
     eagle2.smk           phasing with Eagle2
     phase.smk            final phased VCFs, pgen copies
     relatedness.smk      array-site genotypes, kinship, unrelated set, genetic PCs
+    ancestry.smk         reference candidates, ADMIXTURE, reference selection, plots
+    rfmix2.smk           local ancestry with RFMix2
     provenance.smk       resolved config snapshot
   scripts/
     fetch_resources.sh   downloads the panel, genetic maps, array manifest and LD regions
     array_sites.py       autosomal SNP positions of an Illumina manifest
+    reference_candidates.py
+                         panel samples that may enter the local ancestry reference
+    select_reference.py  ADMIXTURE component matching and purity filter
+    plot_local_ancestry.py
+                         karyograms and genome-wide ancestry from local calls
   envs/pixi.toml         rule envs (pixi workspace)
 .tests/integration/      toy inputs for the end-to-end test; make_test_data.sh records how they were built
 profiles/
@@ -103,6 +129,15 @@ Everything goes under `results/<run_id>/`. Logs and benchmarks go to
 | `unrelated.txt` | Sample IDs of the unrelated set, one per line |
 | `pcs.tsv` | `num_pcs` genetic PCs of every sample |
 | `pcs.eigenval` | Eigenvalues of those PCs |
+| `ancestry/candidates.tsv` | Reference candidates: sample, population, ancestry |
+| `ancestry/<chrom>.{query,reference}.bcf` | Cohort and candidates at the matched array SNPs |
+| `admixture/merged.*` | ADMIXTURE input and its `.Q` and `.P` files |
+| `lai_sample_map.tsv` | Local ancestry reference: sample, ancestry |
+| `global_ancestry.tsv` | ADMIXTURE share per ancestry of each unrelated cohort sample |
+| `local_ancestry/<chrom>.{msp,fb}.tsv` | Local ancestry calls in RFMix2's layout |
+| `local_ancestry_global.tsv` | Genome-wide share per ancestry of each sample, from its tracts |
+| `plots/karyograms.{svg,png}` | Local ancestry of 10 random samples |
+| `plots/global_ancestry.{svg,png}` | Genome-wide shares from local calls against ADMIXTURE |
 | `config.snapshot.json` | The resolved config, `--config` overrides included. Rerun it with `--configfile results/<run_id>/config.snapshot.json`. |
 
 ### Conventions
@@ -143,7 +178,8 @@ The launcher env (`pixi.toml` at the root) has Snakemake main and its plugins
 for pixi deployment and SLURM. The rule envs live in a second pixi workspace,
 `workflow/envs/`. Its `pixi.lock` pins every package. An `onstart` hook
 installs it before the first job, because parallel SLURM jobs would otherwise
-race to install it. `default` runs bcftools and plink2. SHAPEIT5 pins htslib
+race to install it. `default` runs bcftools, plink2, ADMIXTURE, RFMix2 and the
+Python scripts. SHAPEIT5 pins htslib
 below 1.25, and so does Eagle2, so each runs in its own env. Both workspaces exclude
 packages published in the last 7 days. The exceptions are certifi, bcftools and htslib, so their security fixes
 land at once.
@@ -207,6 +243,12 @@ belongs to.
 | `long_range_ld` | BED of long-range LD regions left out of the PCs. |
 | `kinship_cutoff` | KING kinship above which a pair counts as related. Default `0.0442`, the third-degree bound, as in the SOP. |
 | `num_pcs` | Number of genetic PCs. Default `20`. The SOP uses 10 for local ancestry and 5 for bulk eQTL. |
+| `panel_metadata` | gnomAD HGDP+1kGP metadata TSV. It MUST have the columns `s`, `hgdp_tgp_meta.Population` and `sample_filters.release_related`. |
+| `local_ancestry.tool` | `rfmix2`. The Snakefile includes only that tool's rule file. |
+| `local_ancestry.populations` | Panel populations of each ancestry, which may enter the reference. The ancestry order sets the codes in the msp files. |
+| `local_ancestry.min_purity` | Smallest ADMIXTURE share of its own ancestry for a candidate to join the reference. Default `0.9` for AFR and EUR and `0.8` for NAT, as in the SOP. |
+| `local_ancestry.rfmix_generations` | RFMix2 `--generations`. Default `8`. The SOP raises or lowers it when tracts look too fragmented or too uniform. |
+| `seed` | Seed for ADMIXTURE, RFMix2 and the karyogram samples. |
 | `filters.min_dp` | Genotypes with lower depth go missing. Default `10`, as in the SOP. |
 | `filters.min_maf` | Sites with lower minor allele frequency are dropped. Default `0.01`, as in the SOP. |
 | `filters.max_missing` | Sites with a larger missing genotype fraction are dropped. Default `0.05`. |

@@ -8,7 +8,18 @@ exclude-newer = "7d"
 bcftools = "*"
 htslib = "*"
 plink2 = "*"
+admixture = "*"
+rfmix = "*"
 python = "3.13.*"
+polars = "*"
+matplotlib = ">=3.11"
+
+[pypi-dependencies]
+poikilos = { git = "https://github.com/ramirc0/poikilos" }
+
+# Rule jobs only save figures. Without this, a job that inherits DISPLAY picks a GUI backend.
+[activation.env]
+MPLBACKEND = "Agg"
 
 # SHAPEIT5 and Eagle2 pin htslib below 1.25, so they stay out of default.
 [feature.shapeit5.dependencies]

@@ -66,7 +66,7 @@ rule array_genotypes:
 
 rule cohort_array_pgen:
     input:
-        expand(f"{OUTDIR}/array/{{chrom}}.bcf", chrom=CHROMOSOMES),
+        expand(f"{OUTDIR}/array/{{chrom}}.bcf", chrom=PHASED_AUTOSOMES),
     output:
         multiext(f"{OUTDIR}/array/cohort", ".pgen", ".pvar", ".psam"),
     params:

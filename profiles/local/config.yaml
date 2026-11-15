@@ -30,6 +30,13 @@ set-threads:
   cohort_array_pgen: 8
   relatedness: 8
   genetic_pcs: 8
+  reference_candidates: 1
+  match_array_sites: 2
+  make_lai_maps: 1
+  admixture: 8
+  select_reference: 1
+  local_ancestry_rfmix2: 8
+  plot_local_ancestry: 1
 
 set-resources:
   prepare_genotypes: {mem_mb: 4000}
@@ -41,3 +48,10 @@ set-resources:
   cohort_array_pgen: {mem_mb: 8000}
   relatedness: {mem_mb: 8000}
   genetic_pcs: {mem_mb: 8000}
+  reference_candidates: {mem_mb: 2000}
+  match_array_sites: {mem_mb: 2000}
+  make_lai_maps: {mem_mb: 1000}
+  admixture: {mem_mb: 8000}
+  select_reference: {mem_mb: 2000}
+  local_ancestry_rfmix2: {mem_mb: 16000}
+  plot_local_ancestry: {mem_mb: 8000}

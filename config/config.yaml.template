@@ -20,6 +20,17 @@ long_range_ld: /data/zusers/ramirezc/data/genotype-phasing-smk/resources/high-LD
 kinship_cutoff: 0.0442   # KING kinship at the third-degree bound
 num_pcs: 20
 
+panel_metadata: /data/zusers/ramirezc/data/genotype-phasing-smk/resources/hgdp1kgp/gnomad_meta_updated.tsv
+local_ancestry:
+  tool: rfmix2
+  populations:           # panel populations whose unrelated samples may enter the reference
+    AFR: [YRI, ESN, GWD, MSL, LWK, Yoruba, Mandenka]
+    EUR: [CEU, GBR, IBS, TSI, French, Italian, Tuscan, Basque, Orcadian, Sardinian, Russian]
+    NAT: [PEL, MXL, Maya, Pima, Karitiana, Surui, Colombian]
+  min_purity: {AFR: 0.9, EUR: 0.9, NAT: 0.8}   # smallest ADMIXTURE share to join the reference
+  rfmix_generations: 8   # RFMix2 -G, generations since admixture
+seed: 1
+
 filters:
   min_dp: 10             # genotypes below this depth go missing
   min_maf: 0.01
