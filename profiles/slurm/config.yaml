@@ -52,11 +52,11 @@ set-threads:
 
 set-resources:              # tune from benchmarks/ TSVs after a real run
   prepare_genotypes:
-    mem_mb: 8000 * attempt
-    runtime: 720m
-    slurm_partition: 12hours,5days
+    mem_mb: 4000 * attempt
+    runtime: 240m
+    slurm_partition: 4hours,12hours,5days
   phase_shapeit5:
-    mem_mb: 64000 * attempt
+    mem_mb: 32000 * attempt
     runtime: 720m
     slurm_partition: 12hours,5days
   phase_eagle2:
