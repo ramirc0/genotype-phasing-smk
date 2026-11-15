@@ -1,4 +1,7 @@
 # Tool config only. The pixi workspaces live in the pixi.toml files.
+[tool.ruff]
+extend-exclude = ["workflow/scripts/vendor"]   # third-party code kept as upstream wrote it
+
 [tool.ruff.lint]
 extend-select = ["D"]
 

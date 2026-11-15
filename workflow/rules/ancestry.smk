@@ -244,3 +244,39 @@ rule plot_local_ancestry:
 
         sync {output:q}
         """
+
+
+# Tractor needs the phased VCF whose haplotypes local ancestry was called on. The
+# local ancestry query comes from this VCF, so samples and haplotypes line up.
+rule extract_tracts:
+    input:
+        vcf=f"{OUTDIR}/phased/{{chrom}}.vcf.gz",
+        msp=f"{OUTDIR}/local_ancestry/{{chrom}}.msp.tsv",
+    output:
+        [
+            f"{OUTDIR}/tracts/{{chrom}}.anc{i}.{kind}.txt.gz"
+            for i in range(len(LAI["populations"]))
+            for kind in ("dosage", "hapcount")
+        ],
+    params:
+        outdir=f"{OUTDIR}/tracts",
+        ancestries=len(LAI["populations"]),
+    log:
+        f"{LOGDIR}/extract_tracts/{{chrom}}.txt",
+    benchmark:
+        f"{BENCHDIR}/extract_tracts/{{chrom}}.tsv"
+    software:
+        SOFTWARE_ENV
+    shell:
+        r"""
+        exec &> >(tee {log:q})
+
+        python {workflow.basedir:q}/scripts/vendor/extract_tracts.py \
+            --vcf {input.vcf:q} \
+            --msp {input.msp:q} \
+            --num-ancs {params.ancestries:q} \
+            --output-dir {params.outdir:q} \
+            --compress-output
+
+        sync {output:q}
+        """

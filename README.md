@@ -71,7 +71,12 @@ Across the genome:
     - `local_ancestry_gnomix` runs gnomix. It trains a model on admixed samples
       that it simulates from the reference, then deletes them. Phase correction
       stays off, so its haplotypes stay those of the phased VCF.
-11. `plot_local_ancestry` draws both haplotypes of every chromosome for 10
+11. `extract_tracts` runs Tractor's `extract_tracts.py` on each phased VCF and
+    its msp file. It writes, per ancestry, the ALT dosage and the haplotype
+    count of each sample at every phased site, which Tractor's regression reads.
+    The local ancestry query comes from the phased VCF, so samples and
+    haplotypes line up. Sites outside every msp window are skipped.
+12. `plot_local_ancestry` draws both haplotypes of every chromosome for 10
     random samples, so tract lengths can be checked before mapping, as the SOP
     asks. It sums each sample's tracts into genome-wide shares and plots them
     against ADMIXTURE.
@@ -110,6 +115,8 @@ workflow/
     plot_local_ancestry.py
                          karyograms and genome-wide ancestry from local calls
     gnomix_config.py     sets a gnomix config's seed, cores and cleanup per job
+    vendor/extract_tracts.py
+                         Tractor's script, unchanged; see THIRD_PARTY_LICENSES
   envs/pixi.toml         rule envs (pixi workspace)
   envs/gnomix/           gnomix package recipe at a pinned commit, with a bug fix
 .tests/integration/      toy inputs for the end-to-end test; make_test_data.sh records how they were built
@@ -144,6 +151,7 @@ Everything goes under `results/<run_id>/`. Logs and benchmarks go to
 | `global_ancestry.tsv` | ADMIXTURE share per ancestry of each unrelated cohort sample |
 | `local_ancestry/<chrom>.{msp,fb}.tsv` | Local ancestry calls in RFMix2's layout |
 | `local_ancestry_global.tsv` | Genome-wide share per ancestry of each sample, from its tracts |
+| `tracts/<chrom>.anc<i>.{dosage,hapcount}.txt.gz` | Tractor input per ancestry `i`, numbered as in the msp header |
 | `plots/karyograms.{svg,png}` | Local ancestry of 10 random samples |
 | `plots/global_ancestry.{svg,png}` | Genome-wide shares from local calls against ADMIXTURE |
 | `config.snapshot.json` | The resolved config, `--config` overrides included. Rerun it with `--configfile results/<run_id>/config.snapshot.json`. |
@@ -284,7 +292,9 @@ Christian Ramirez ([@ramirc0](https://github.com/ramirc0))
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE). `workflow/scripts/vendor/extract_tracts.py` comes
+from [Tractor](https://github.com/Atkinson-Lab/Tractor) under its MIT license.
+See [THIRD_PARTY_LICENSES](THIRD_PARTY_LICENSES).
 
 ## Acknowledgments
 

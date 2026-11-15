@@ -46,6 +46,7 @@ set-threads:
   local_ancestry_rfmix2: 16
   local_ancestry_gnomix: 16
   plot_local_ancestry: 1
+  extract_tracts: 1
 
 set-resources:              # tune from benchmarks/ TSVs after a real run
   prepare_genotypes:
@@ -113,6 +114,10 @@ set-resources:              # tune from benchmarks/ TSVs after a real run
     mem_mb: 32000 * attempt
     runtime: 240m
     slurm_partition: 4hours,12hours,5days
+  extract_tracts:
+    mem_mb: 4000 * attempt
+    runtime: 720m
+    slurm_partition: 12hours,5days
 
 rerun-incomplete: true
 keep-going: true
