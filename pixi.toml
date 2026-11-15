@@ -19,6 +19,10 @@ snakemake-executor-plugin-slurm-jobstep = "==0.6.1"
 [tasks]
 test = "snakemake --snakefile workflow/Snakefile --directory .tests/integration --profile profiles/local --cores 2 --forceall"
 
+[tasks.fetch-resources]
+args = ["dest"]
+cmd = "bash workflow/scripts/fetch_resources.sh {{ dest }}"
+
 # Targets must precede --configfile, so they ride in the second argument, not after `--`.
 [tasks.slurm]
 args = ["run_id", { arg = "snakemake_args", default = "" }]

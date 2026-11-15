@@ -22,8 +22,10 @@ workflow/
   rules/
     common.smk           config, path constants, helpers
     provenance.smk       resolved config snapshot
+  scripts/
+    fetch_resources.sh   downloads the panel, genetic maps and array manifest
   envs/pixi.toml         rule envs (pixi workspace)
-.tests/integration/      toy inputs for the end-to-end test
+.tests/integration/      toy inputs for the end-to-end test; make_test_data.sh records how they were built
 profiles/
   local/config.yaml      local execution
   slurm/config.yaml      SLURM (per-rule resources, retried with more memory)
@@ -81,6 +83,23 @@ installs it before the first job, because parallel SLURM jobs would otherwise
 race to install it. Both workspaces exclude packages published in the last 7
 days. The exceptions are certifi, bcftools and htslib, so their security fixes
 land at once.
+
+Fetch the reference resources once, about 20 GB:
+
+```bash
+pixi run fetch-resources /data/zusers/ramirezc/data/genotype-phasing-smk/resources
+```
+
+| Directory | Contents |
+|---|---|
+| `hgdp1kgp/` | The [HGDP+1kGP phased panel](https://doi.org/10.1101/gr.278378.123) v2 from gnomAD: 4,091 samples phased with SHAPEIT5, one BCF per autosome and per chrX region, and `gnomad_meta_updated.tsv` |
+| `genetic-maps/shapeit5/` | SHAPEIT5 GRCh38 maps from `odelaneau/shapeit` at commit `c34d4db` |
+| `genetic-maps/eagle2/` | Eagle's `genetic_map_hg38_withX.txt.gz` |
+| `mega/` | The Illumina Multi-Ethnic Global-8 D2 manifest, GRCh38 |
+
+A rerun skips finished files and resumes partial ones. Each panel BCF and map
+is also linked under its region name, `chr1` to `chr22`, `chrX_par1`,
+`chrX_nonpar` or `chrX_par2`, which the config paths use.
 
 ### Executing program
 
