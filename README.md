@@ -35,8 +35,26 @@ Each chromosome runs on its own:
 4. `export_pgen` writes a plink2 pgen copy, which keeps the phase. Its
    chromosome codes drop the `chr` prefix, as tensorQTL's SOP example expects.
 
+Across the genome:
+
+5. `make_array_sites` reads the autosomal SNP positions from the array
+   manifest once, into `results/refs/`. `array_genotypes` keeps the phased
+   SNPs at those positions, as the SOP thins WGS genotypes to an array SNP set
+   before local ancestry. A split multiallelic site leaves several SNP records
+   at one position, and RFMix2 matches records by position alone, so only
+   positions with one SNP record are kept. `cohort_array_pgen` joins the
+   chromosomes into one pgen.
+6. `relatedness` computes KING-robust kinship with plink2, which tolerates
+   population structure. `--king-cutoff` drops a sample from each pair above
+   `kinship_cutoff` and writes the rest to `unrelated.txt`.
+7. `genetic_pcs` computes PCs from the unrelated samples, on SNPs with MAF of
+   at least 5% outside long-range LD regions, pruned to r² < 0.1 in 1 Mb
+   windows. It then projects every sample, so relatives get PCs on the same
+   scale.
+
 The callset MUST code every genotype as diploid, as GATK joint genotyping at
-ploidy 2 does.
+ploidy 2 does. Relatives stay in phasing. `unrelated.txt` filters samples at
+mapping.
 
 ### Layout
 
@@ -54,9 +72,11 @@ workflow/
     shapeit5.smk         phasing with SHAPEIT5
     eagle2.smk           phasing with Eagle2
     phase.smk            final phased VCFs, pgen copies
+    relatedness.smk      array-site genotypes, kinship, unrelated set, genetic PCs
     provenance.smk       resolved config snapshot
   scripts/
-    fetch_resources.sh   downloads the panel, genetic maps and array manifest
+    fetch_resources.sh   downloads the panel, genetic maps, array manifest and LD regions
+    array_sites.py       autosomal SNP positions of an Illumina manifest
   envs/pixi.toml         rule envs (pixi workspace)
 .tests/integration/      toy inputs for the end-to-end test; make_test_data.sh records how they were built
 profiles/
@@ -77,6 +97,12 @@ Everything goes under `results/<run_id>/`. Logs and benchmarks go to
 | `phase/<chrom>.bcf` | Phaser output |
 | `phased/<chrom>.vcf.gz` | Phased genotypes with recomputed tags and `CHROM:POS:REF:ALT` IDs |
 | `pgen/<chrom>.{pgen,pvar,psam}` | plink2 copy of the phased genotypes |
+| `array/<chrom>.bcf` | Phased genotypes at array SNPs |
+| `array/cohort.{pgen,pvar,psam}` | Array-site genotypes of all chromosomes |
+| `king.kin0` | Sample pairs with KING kinship above `kinship_cutoff` |
+| `unrelated.txt` | Sample IDs of the unrelated set, one per line |
+| `pcs.tsv` | `num_pcs` genetic PCs of every sample |
+| `pcs.eigenval` | Eigenvalues of those PCs |
 | `config.snapshot.json` | The resolved config, `--config` overrides included. Rerun it with `--configfile results/<run_id>/config.snapshot.json`. |
 
 ### Conventions
@@ -134,6 +160,7 @@ pixi run fetch-resources /data/zusers/ramirezc/data/genotype-phasing-smk/resourc
 | `genetic-maps/shapeit5/` | SHAPEIT5 GRCh38 maps from `odelaneau/shapeit` at commit `c34d4db` |
 | `genetic-maps/eagle2/` | Eagle's `genetic_map_hg38_withX.txt.gz` |
 | `mega/` | The Illumina Multi-Ethnic Global-8 D2 manifest, GRCh38 |
+| `high-LD-regions-hg38-GRCh38.bed` | Long-range LD regions from [plinkQC](https://github.com/meyer-lab-cshl/plinkQC) at commit `2e64f66` |
 
 A rerun skips finished files and resumes partial ones. Each panel BCF and map
 is also linked under its region name, `chr1` to `chr22`, `chrX_par1`,
@@ -176,6 +203,10 @@ belongs to.
 | `panel` | Phased reference panel BCF per region, with `{region}` in the path and a `.csi` beside it. |
 | `genetic_maps.shapeit5` | SHAPEIT5 genetic map per region, with `{region}` in the path. |
 | `genetic_maps.eagle2` | Eagle2 genetic map, one file for all chromosomes. |
+| `array_manifest` | Illumina manifest CSV whose autosomal SNPs form the array SNP set. |
+| `long_range_ld` | BED of long-range LD regions left out of the PCs. |
+| `kinship_cutoff` | KING kinship above which a pair counts as related. Default `0.0442`, the third-degree bound, as in the SOP. |
+| `num_pcs` | Number of genetic PCs. Default `20`. The SOP uses 10 for local ancestry and 5 for bulk eQTL. |
 | `filters.min_dp` | Genotypes with lower depth go missing. Default `10`, as in the SOP. |
 | `filters.min_maf` | Sites with lower minor allele frequency are dropped. Default `0.01`, as in the SOP. |
 | `filters.max_missing` | Sites with a larger missing genotype fraction are dropped. Default `0.05`. |

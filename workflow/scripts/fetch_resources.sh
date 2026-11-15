@@ -15,6 +15,7 @@ metadata_url=$gnomad/release/3.1/secondary_analyses/hgdp_1kg_v2/metadata_and_qc/
 shapeit_maps_url=https://raw.githubusercontent.com/odelaneau/shapeit/c34d4db3e99a2f7e23deb727671ae260901a5886/resources/maps/b38
 eagle_map_url=https://storage.googleapis.com/broad-alkesgroup-public/Eagle/downloads/tables/genetic_map_hg38_withX.txt.gz
 mega_url=https://webdata.illumina.com/downloads/productfiles/multiethnic-global-8/v1-0/build38/multi-ethnic-global-8-d2-csv.zip
+ld_regions_url=https://raw.githubusercontent.com/meyer-lab-cshl/plinkQC/2e64f66a473d22efd95c5e8ae9cea77329fa5567/inst/extdata/high-LD-regions-hg38-GRCh38.bed
 
 # A download keeps its final name only once complete, so a rerun skips it and resumes the rest.
 fetch() {
@@ -52,3 +53,5 @@ fetch "$eagle_map_url" "$dest/genetic-maps/eagle2/genetic_map_hg38_withX.txt.gz"
 
 fetch "$mega_url" "$dest/mega/multi-ethnic-global-8-d2-csv.zip"
 unzip -o -d "$dest/mega" "$dest/mega/multi-ethnic-global-8-d2-csv.zip"
+
+fetch "$ld_regions_url" "$dest/high-LD-regions-hg38-GRCh38.bed"

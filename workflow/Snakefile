@@ -2,6 +2,7 @@ include: "rules/common.smk"
 include: "rules/prepare.smk"
 include: f"rules/{config['phaser']}.smk"
 include: "rules/phase.smk"
+include: "rules/relatedness.smk"
 include: "rules/provenance.smk"
 
 
@@ -15,4 +16,6 @@ rule all:
     input:
         expand(f"{OUTDIR}/phased/{{chrom}}.vcf.gz", chrom=CHROMOSOMES),
         expand(f"{OUTDIR}/pgen/{{chrom}}.pgen", chrom=CHROMOSOMES),
+        f"{OUTDIR}/king.kin0",
+        f"{OUTDIR}/pcs.tsv",
         f"{OUTDIR}/config.snapshot.json",

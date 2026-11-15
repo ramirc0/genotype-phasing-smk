@@ -15,6 +15,11 @@ genetic_maps:
   shapeit5: /data/zusers/ramirezc/data/genotype-phasing-smk/resources/genetic-maps/shapeit5/{region}.b38.gmap.gz
   eagle2: /data/zusers/ramirezc/data/genotype-phasing-smk/resources/genetic-maps/eagle2/genetic_map_hg38_withX.txt.gz
 
+array_manifest: /data/zusers/ramirezc/data/genotype-phasing-smk/resources/mega/Multi-EthnicGlobal_D2.csv
+long_range_ld: /data/zusers/ramirezc/data/genotype-phasing-smk/resources/high-LD-regions-hg38-GRCh38.bed
+kinship_cutoff: 0.0442   # KING kinship at the third-degree bound
+num_pcs: 20
+
 filters:
   min_dp: 10             # genotypes below this depth go missing
   min_maf: 0.01

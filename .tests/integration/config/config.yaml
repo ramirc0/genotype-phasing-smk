@@ -13,6 +13,11 @@ genetic_maps:
   shapeit5: resources/maps/{region}.b38.gmap.gz
   eagle2: resources/maps/genetic_map_hg38_withX.txt.gz
 
+array_manifest: resources/Multi-EthnicGlobal_D2.csv
+long_range_ld: resources/high-LD-regions-hg38-GRCh38.bed
+kinship_cutoff: 0.354    # the toy data has too few SNPs to estimate kinship below duplicates
+num_pcs: 5
+
 filters:
   min_dp: 10
   min_maf: 0.01

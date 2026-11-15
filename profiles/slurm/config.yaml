@@ -31,6 +31,10 @@ set-threads:
   phase_eagle2: 16
   finalize_phased: 4
   export_pgen: 4
+  array_genotypes: 2
+  cohort_array_pgen: 8
+  relatedness: 8
+  genetic_pcs: 8
 
 set-resources:              # tune from benchmarks/ TSVs after a real run
   prepare_genotypes:
@@ -50,6 +54,22 @@ set-resources:              # tune from benchmarks/ TSVs after a real run
     runtime: 240m
     slurm_partition: 4hours
   export_pgen:
+    mem_mb: 16000 * attempt
+    runtime: 240m
+    slurm_partition: 4hours
+  array_genotypes:
+    mem_mb: 4000 * attempt
+    runtime: 240m
+    slurm_partition: 4hours
+  cohort_array_pgen:
+    mem_mb: 16000 * attempt
+    runtime: 240m
+    slurm_partition: 4hours
+  relatedness:
+    mem_mb: 16000 * attempt
+    runtime: 240m
+    slurm_partition: 4hours
+  genetic_pcs:
     mem_mb: 16000 * attempt
     runtime: 240m
     slurm_partition: 4hours

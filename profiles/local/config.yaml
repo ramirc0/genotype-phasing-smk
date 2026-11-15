@@ -26,6 +26,10 @@ set-threads:
   phase_eagle2: 8
   finalize_phased: 2
   export_pgen: 4
+  array_genotypes: 2
+  cohort_array_pgen: 8
+  relatedness: 8
+  genetic_pcs: 8
 
 set-resources:
   prepare_genotypes: {mem_mb: 4000}
@@ -33,3 +37,7 @@ set-resources:
   phase_eagle2: {mem_mb: 16000}
   finalize_phased: {mem_mb: 2000}
   export_pgen: {mem_mb: 8000}
+  array_genotypes: {mem_mb: 2000}
+  cohort_array_pgen: {mem_mb: 8000}
+  relatedness: {mem_mb: 8000}
+  genetic_pcs: {mem_mb: 8000}

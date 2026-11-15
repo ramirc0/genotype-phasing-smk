@@ -108,3 +108,5 @@ zcat "$res/genetic-maps/eagle2/genetic_map_hg38_withX.txt.gz" \
 awk -F, 'NR <= 8 || /^\[Controls\]/ { print; controls = controls || /^\[Controls\]/; next }
     controls || ($10 == "20" && $11 <= 347695)' \
     "$res/mega/Multi-EthnicGlobal_D2.csv" > resources/Multi-EthnicGlobal_D2.csv
+
+cp "$res/high-LD-regions-hg38-GRCh38.bed" resources/
