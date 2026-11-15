@@ -11,16 +11,41 @@ The workflow reads one joint-called VCF, such as the output of
 and writes every product of the SOP that needs only genotypes. Trait QC and QTL
 mapping stay in per-omics pipelines.
 
+### Pipeline
+
+Each chromosome runs on its own:
+
+1. `prepare_genotypes` keeps PASS records and drops the samples in
+   `exclude_samples`. It splits multiallelics with the other ALT set missing, so
+   no sample gains a REF allele it lacks, and drops `*` alleles. Genotypes with
+   depth below `min_dp` go missing. Sites below `min_maf` or above
+   `max_missing` are dropped. Only GT is kept.
+2. `phase_shapeit5` phases with SHAPEIT5 `phase_common` against the reference
+   panel. Panel and cohort haplotypes condition each other. Missing genotypes
+   are imputed. Sites absent from the panel are dropped, and the log counts
+   them. The SHAPEIT5 docs skip `phase_rare` below 2,000 samples.
+3. `finalize_phased` recomputes AC, AN, AF and MAF and sets each ID to
+   `CHROM:POS:REF:ALT`.
+4. `export_pgen` writes a plink2 pgen copy, which keeps the phase. Its
+   chromosome codes drop the `chr` prefix, as tensorQTL's SOP example expects.
+
+The callset MUST code every genotype as diploid, as GATK joint genotyping at
+ploidy 2 does.
+
 ### Layout
 
 ```
 config/
   config.yaml.template   parameters + paths; copy to config/<run_id>/config.yaml
-  <run_id>/              one run's config (gitignored)
+  exclude_samples.tsv.template
+                         headerless: sample ID, reason
+  <run_id>/              one run's config and exclusions (gitignored)
 workflow/
   Snakefile              includes the rule files, onstart hook, rule all
   rules/
     common.smk           config, path constants, helpers
+    prepare.smk          per-chromosome genotype filters
+    phase.smk            phasing, final phased VCFs, pgen copies
     provenance.smk       resolved config snapshot
   scripts/
     fetch_resources.sh   downloads the panel, genetic maps and array manifest
@@ -40,6 +65,10 @@ Everything goes under `results/<run_id>/`. Logs and benchmarks go to
 
 | Path | Contents |
 |---|---|
+| `prepare/<chrom>.bcf` | Filtered genotypes, the phaser's input |
+| `phase/<chrom>.bcf` | Phaser output |
+| `phased/<chrom>.vcf.gz` | Phased genotypes with recomputed tags and `CHROM:POS:REF:ALT` IDs |
+| `pgen/<chrom>.{pgen,pvar,psam}` | plink2 copy of the phased genotypes |
 | `config.snapshot.json` | The resolved config, `--config` overrides included. Rerun it with `--configfile results/<run_id>/config.snapshot.json`. |
 
 ### Conventions
@@ -80,8 +109,9 @@ The launcher env (`pixi.toml` at the root) has Snakemake main and its plugins
 for pixi deployment and SLURM. The rule envs live in a second pixi workspace,
 `workflow/envs/`. Its `pixi.lock` pins every package. An `onstart` hook
 installs it before the first job, because parallel SLURM jobs would otherwise
-race to install it. Both workspaces exclude packages published in the last 7
-days. The exceptions are certifi, bcftools and htslib, so their security fixes
+race to install it. `default` runs bcftools and plink2. SHAPEIT5 pins htslib
+below 1.25, so it runs in its own env, `shapeit5`. Both workspaces exclude
+packages published in the last 7 days. The exceptions are certifi, bcftools and htslib, so their security fixes
 land at once.
 
 Fetch the reference resources once, about 20 GB:
@@ -111,6 +141,7 @@ back to a stale default.
 ```bash
 mkdir -p config/<run_id>
 cp config/config.yaml.template config/<run_id>/config.yaml       # then edit
+cp config/exclude_samples.tsv.template config/<run_id>/exclude_samples.tsv  # then edit
 pixi shell                                                       # launcher env
 snakemake -n -p --profile profiles/local --configfile config/<run_id>/config.yaml  # dry run
 snakemake --profile profiles/local --configfile config/<run_id>/config.yaml        # local
@@ -128,6 +159,16 @@ belongs to.
 | `outdir` | Results root. |
 | `pixi_env` | Environment of `workflow/envs/pixi.toml` for most rules. |
 | `run_id` | Run name, `YYYY-MM-DD-<what>`. Outputs go under `results/<run_id>/`. |
+| `callset` | Joint-called VCF with a `.tbi`. |
+| `fasta` | Reference FASTA of the callset, with its `.fai` (and `.gzi` if bgzipped). |
+| `exclude_samples` | Headerless TSV of sample ID and reason. Lines starting with `#` are ignored. Every ID MUST be in the callset. |
+| `chromosomes` | Chromosomes to phase, `chr1` to `chr22`. |
+| `phaser` | `shapeit5`. |
+| `panel` | Phased reference panel BCF per region, with `{region}` in the path and a `.csi` beside it. |
+| `genetic_maps.shapeit5` | SHAPEIT5 genetic map per region, with `{region}` in the path. |
+| `filters.min_dp` | Genotypes with lower depth go missing. Default `10`, as in the SOP. |
+| `filters.min_maf` | Sites with lower minor allele frequency are dropped. Default `0.01`, as in the SOP. |
+| `filters.max_missing` | Sites with a larger missing genotype fraction are dropped. Default `0.05`. |
 
 ## Help
 

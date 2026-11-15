@@ -1,3 +1,18 @@
 outdir: results
 pixi_env: default
 run_id: default
+
+callset: resources/callset.vcf.gz
+fasta: resources/reference.fa.gz
+exclude_samples: config/exclude_samples.tsv
+chromosomes: [chr20]
+
+phaser: shapeit5
+panel: resources/panel/{region}.bcf
+genetic_maps:
+  shapeit5: resources/maps/{region}.b38.gmap.gz
+
+filters:
+  min_dp: 10
+  min_maf: 0.01
+  max_missing: 0.05

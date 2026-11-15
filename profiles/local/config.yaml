@@ -19,3 +19,15 @@ benchmark-extended: true
 default-resources:
   mem_mb: 4000
   runtime: 30
+
+set-threads:
+  prepare_genotypes: 4
+  phase_shapeit5: 8
+  finalize_phased: 2
+  export_pgen: 4
+
+set-resources:
+  prepare_genotypes: {mem_mb: 4000}
+  phase_shapeit5: {mem_mb: 16000}
+  finalize_phased: {mem_mb: 2000}
+  export_pgen: {mem_mb: 8000}

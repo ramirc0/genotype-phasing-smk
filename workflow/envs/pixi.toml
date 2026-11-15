@@ -7,6 +7,14 @@ exclude-newer = "7d"
 [dependencies]
 bcftools = "*"
 htslib = "*"
+plink2 = "*"
+
+# SHAPEIT5 pins htslib below 1.25, so it stays out of default.
+[feature.shapeit5.dependencies]
+shapeit5 = "*"
+
+[environments]
+shapeit5 = { features = ["shapeit5"], no-default-feature = true }
 
 [exclude-newer]
 ca-certificates = "0d"

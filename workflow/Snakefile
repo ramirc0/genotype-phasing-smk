@@ -1,4 +1,6 @@
 include: "rules/common.smk"
+include: "rules/prepare.smk"
+include: "rules/phase.smk"
 include: "rules/provenance.smk"
 
 
@@ -10,4 +12,6 @@ onstart:
 
 rule all:
     input:
+        expand(f"{OUTDIR}/phased/{{chrom}}.vcf.gz", chrom=CHROMOSOMES),
+        expand(f"{OUTDIR}/pgen/{{chrom}}.pgen", chrom=CHROMOSOMES),
         f"{OUTDIR}/config.snapshot.json",

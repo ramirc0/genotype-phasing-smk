@@ -25,6 +25,30 @@ default-resources:
   runtime: 30m
   mem_mb: 4000 * attempt
 
+set-threads:
+  prepare_genotypes: 4
+  phase_shapeit5: 16
+  finalize_phased: 4
+  export_pgen: 4
+
+set-resources:              # tune from benchmarks/ TSVs after a real run
+  prepare_genotypes:
+    mem_mb: 8000 * attempt
+    runtime: 720m
+    slurm_partition: 12hours
+  phase_shapeit5:
+    mem_mb: 64000 * attempt
+    runtime: 720m
+    slurm_partition: 12hours
+  finalize_phased:
+    mem_mb: 4000 * attempt
+    runtime: 240m
+    slurm_partition: 4hours
+  export_pgen:
+    mem_mb: 16000 * attempt
+    runtime: 240m
+    slurm_partition: 4hours
+
 rerun-incomplete: true
 keep-going: true
 show-failed-logs: true
