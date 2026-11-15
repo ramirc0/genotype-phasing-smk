@@ -1,0 +1,79 @@
+// genotype-phasing-smk stages, with related rules merged. workflow.gv has every rule.
+// Render: just -f ~/.claude/skills/graphviz-dot-theme/justfile render workflow-condensed.gv snakemake {TB,LR} {png,svg} files
+digraph workflow {
+  label = "genotype-phasing-smk"
+
+  subgraph cluster_inputs {
+    label = "Inputs"
+    callset [class = data, label = "callset.vcf.gz"]
+    panel   [class = data, label = "HGDP+1kGP panel"]
+  }
+
+  subgraph cluster_phase {
+    label = "Phase"
+    prepare  [class = step, label = "Prepare\nprepare_genotypes, infer_x_ploidy"]
+    phase    [class = step, label = "Phase\nSHAPEIT5 or Eagle2"]
+    finalize [class = step, label = "Finalize\nconcat_chrx, finalize_phased, export_pgen"]
+    prepared [class = data, label = "prepare/*.bcf"]
+    phased   [class = data, label = "phased/*.vcf.gz"]
+  }
+
+  subgraph cluster_relatedness {
+    label = "Relatedness"
+    array       [class = step, label = "Array\nmake_array_sites, array_genotypes, cohort_array_pgen"]
+    relatedness [class = step, label = "Relatedness\nplink2 KING"]
+    pcs         [class = step, label = "Genetic PCs\nplink2"]
+    array_bcf   [class = data, label = "array/*.bcf"]
+    unrelated   [class = data, label = "unrelated.txt"]
+  }
+
+  subgraph cluster_ancestry {
+    label = "Ancestry"
+    reference      [class = step, label = "Reference\nreference_candidates, match_array_sites"]
+    admixture      [class = step, label = "Admixture\nADMIXTURE, select_reference"]
+    local_ancestry [class = step, label = "Local ancestry\nRFMix2 or gnomix"]
+    tracts         [class = step, label = "Extract tracts\nTractor"]
+    plot           [class = step, label = "Plot local ancestry\npoikilos"]
+    matched        [class = data, label = "ancestry/*.bcf"]
+    sample_map     [class = data, label = "lai_sample_map.tsv"]
+    msp            [class = data, label = "local_ancestry/*.msp.tsv"]
+    global         [class = data, label = "global_ancestry.tsv"]
+  }
+
+  pgen       [class = result, label = "pgen/"]
+  kin0       [class = result, label = "king.kin0"]
+  pcs_tsv    [class = result, label = "pcs.tsv"]
+  tract_txt  [class = result, label = "tracts/"]
+  plots      [class = result, label = "plots/"]
+
+  callset -> prepare -> prepared
+  prepared -> phase
+  panel -> phase
+  phase -> finalize -> phased
+  finalize -> pgen
+
+  phased -> array -> array_bcf
+  array_bcf -> relatedness
+  relatedness -> unrelated
+  relatedness -> kin0
+  unrelated -> pcs
+  array_bcf -> pcs
+  pcs -> pcs_tsv
+
+  array_bcf -> reference
+  panel -> reference
+  reference -> matched
+  matched -> admixture
+  unrelated -> admixture
+  admixture -> sample_map
+  admixture -> global
+  global -> plot
+  matched -> local_ancestry
+  sample_map -> local_ancestry
+  local_ancestry -> msp
+  phased -> tracts
+  msp -> tracts
+  tracts -> tract_txt
+  msp -> plot
+  plot -> plots
+}

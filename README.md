@@ -11,6 +11,13 @@ The workflow reads one joint-called VCF, such as the output of
 and writes every product of the SOP that needs only genotypes. Trait QC and QTL
 mapping stay in per-omics pipelines.
 
+![Stages of genotype-phasing-smk](docs/workflow-condensed-snakemake-LR.png)
+
+Each box merges related rules. `phase` runs SHAPEIT5 or Eagle2, and
+`local_ancestry` runs RFMix2 or gnomix. Phase runs once per chromosome, and
+Relatedness and Ancestry once per run, with per-chromosome steps inside. The
+[full rule graph](docs/workflow-snakemake-TB.png) shows every rule.
+
 ### Pipeline
 
 Each chromosome runs on its own:
@@ -139,6 +146,7 @@ workflow/
                          Tractor's script, unchanged; see THIRD_PARTY_LICENSES
   envs/pixi.toml         rule envs (pixi workspace)
   envs/gnomix/           gnomix package recipe at a pinned commit, with a bug fix
+docs/workflow*.gv         rule graphs as Graphviz DOT, rendered beside them in the snakemake style
 .tests/integration/      toy inputs for the end-to-end test; make_test_data.sh records how they were built
 profiles/
   local/config.yaml      local execution

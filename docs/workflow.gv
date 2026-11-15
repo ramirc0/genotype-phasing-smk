@@ -1,0 +1,144 @@
+// genotype-phasing-smk rule graph. Structure only; the style adds every visual.
+// Render: just -f ~/.claude/skills/graphviz-dot-theme/justfile render workflow.gv snakemake {TB,LR} {png,svg} files
+digraph workflow {
+  label = "genotype-phasing-smk"
+
+  subgraph cluster_inputs {
+    label = "Inputs"
+    callset  [class = data, label = "callset.vcf.gz"]
+    exclude  [class = data, label = "exclude_samples.tsv"]
+    panel    [class = data, label = "HGDP+1kGP panel"]
+    maps     [class = data, label = "genetic maps"]
+    manifest [class = data, label = "array manifest"]
+    ld       [class = data, label = "long-range LD BED"]
+    metadata [class = data, label = "panel metadata"]
+  }
+
+  subgraph cluster_phase {
+    label = "Phase"
+    prepare_genotypes [class = step, label = "Prepare genotypes\nbcftools"]
+    infer_x_ploidy    [class = step, label = "Infer X ploidy\nplink2"]
+    which_phaser      [class = decision, label = "Phaser?"]
+    phase_shapeit5    [class = step, label = "Phase shapeit5\nSHAPEIT5"]
+    phase_eagle2      [class = step, label = "Phase eagle2\nEagle2"]
+    concat_chrx       [class = step, label = "Concat chrX\nbcftools"]
+    finalize_phased   [class = step, label = "Finalize phased\nbcftools"]
+    export_pgen       [class = step, label = "Export pgen\nplink2"]
+    prepared          [class = data, label = "prepare/*.bcf"]
+    haploids          [class = data, label = "haploid_samples.txt"]
+    x_psam            [class = data, label = "x.psam"]
+    phased_regions    [class = data, label = "phase/*.bcf"]
+    phased_chrx       [class = data, label = "phase/chrX.bcf"]
+    phased            [class = data, label = "phased/*.vcf.gz"]
+  }
+
+  subgraph cluster_relatedness {
+    label = "Relatedness"
+    make_array_sites  [class = step, label = "Make array sites\nPython csv"]
+    array_genotypes   [class = step, label = "Array genotypes\nbcftools"]
+    cohort_array_pgen [class = step, label = "Cohort array pgen\nplink2"]
+    relatedness       [class = step, label = "Relatedness\nplink2 KING"]
+    genetic_pcs       [class = step, label = "Genetic PCs\nplink2"]
+    array_sites       [class = data, label = "array_sites.tsv"]
+    array_bcf         [class = data, label = "array/*.bcf"]
+    cohort_pgen       [class = data, label = "array/cohort.pgen"]
+    unrelated         [class = data, label = "unrelated.txt"]
+  }
+
+  subgraph cluster_ancestry {
+    label = "Ancestry"
+    reference_candidates  [class = step, label = "Reference candidates\npolars"]
+    match_array_sites     [class = step, label = "Match array sites\nbcftools"]
+    make_lai_maps         [class = step, label = "Make LAI maps\nawk"]
+    admixture             [class = step, label = "Admixture\nADMIXTURE"]
+    select_reference      [class = step, label = "Select reference\npolars"]
+    which_tool            [class = decision, label = "Local ancestry tool?"]
+    local_ancestry_rfmix2 [class = step, label = "Local ancestry rfmix2\nRFMix2"]
+    local_ancestry_gnomix [class = step, label = "Local ancestry gnomix\ngnomix"]
+    extract_tracts        [class = step, label = "Extract tracts\nTractor"]
+    plot_local_ancestry   [class = step, label = "Plot local ancestry\npoikilos"]
+    candidates            [class = data, label = "candidates.tsv"]
+    matched               [class = data, label = "ancestry/*.{query,reference}.bcf"]
+    lai_maps              [class = data, label = "lai_maps/*.tsv"]
+    admixture_q           [class = data, label = "merged.Q"]
+    sample_map            [class = data, label = "lai_sample_map.tsv"]
+    global_ancestry       [class = data, label = "global_ancestry.tsv"]
+    msp                   [class = data, label = "local_ancestry/*.msp.tsv"]
+  }
+
+  config_snapshot [class = step, label = "Config snapshot\nJSON"]
+
+  snapshot_json [class = result, label = "config.snapshot.json"]
+  pgen          [class = result, label = "pgen/*.pgen"]
+  kin0          [class = result, label = "king.kin0"]
+  pcs           [class = result, label = "pcs.tsv"]
+  tracts        [class = result, label = "tracts/*.dosage.txt.gz"]
+  lai_global    [class = result, label = "local_ancestry_global.tsv\nplots/"]
+
+  config_snapshot -> snapshot_json
+
+  callset -> prepare_genotypes
+  exclude -> prepare_genotypes
+  prepare_genotypes -> prepared
+  prepared -> infer_x_ploidy
+  infer_x_ploidy -> haploids
+  infer_x_ploidy -> x_psam
+  prepared -> which_phaser
+  which_phaser -> phase_shapeit5 [label = "SHAPEIT5"]
+  which_phaser -> phase_eagle2 [label = "Eagle2"]
+  haploids -> phase_shapeit5
+  panel -> which_phaser
+  maps -> which_phaser
+  phase_shapeit5 -> phased_regions
+  phase_eagle2 -> phased_regions
+  phased_regions -> concat_chrx
+  concat_chrx -> phased_chrx
+  phased_chrx -> finalize_phased
+  phased_regions -> finalize_phased
+  finalize_phased -> phased
+  phased -> export_pgen
+  x_psam -> export_pgen
+  export_pgen -> pgen
+
+  manifest -> make_array_sites -> array_sites
+  phased -> array_genotypes
+  array_sites -> array_genotypes
+  array_genotypes -> array_bcf
+  array_bcf -> cohort_array_pgen -> cohort_pgen
+  cohort_pgen -> relatedness
+  relatedness -> kin0
+  relatedness -> unrelated
+  cohort_pgen -> genetic_pcs
+  unrelated -> genetic_pcs
+  ld -> genetic_pcs
+  genetic_pcs -> pcs
+
+  metadata -> reference_candidates -> candidates
+  array_bcf -> match_array_sites
+  array_sites -> match_array_sites
+  candidates -> match_array_sites
+  panel -> match_array_sites
+  match_array_sites -> matched
+  maps -> make_lai_maps -> lai_maps
+  matched -> admixture
+  unrelated -> admixture
+  ld -> admixture
+  admixture -> admixture_q
+  admixture_q -> select_reference
+  candidates -> select_reference
+  select_reference -> sample_map
+  select_reference -> global_ancestry
+  matched -> which_tool
+  sample_map -> which_tool
+  lai_maps -> which_tool
+  which_tool -> local_ancestry_rfmix2 [label = "RFMix2"]
+  which_tool -> local_ancestry_gnomix [label = "gnomix"]
+  local_ancestry_rfmix2 -> msp
+  local_ancestry_gnomix -> msp
+  phased -> extract_tracts
+  msp -> extract_tracts
+  extract_tracts -> tracts
+  msp -> plot_local_ancestry
+  global_ancestry -> plot_local_ancestry
+  plot_local_ancestry -> lai_global
+}
