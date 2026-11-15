@@ -1,0 +1,44 @@
+# Launcher: Snakemake with the pixi software-deployment and SLURM executor
+# plugins. Rule envs live in their own workspace, workflow/envs/pixi.toml.
+[workspace]
+name = "genotype-phasing-smk"
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+exclude-newer = "7d"
+
+[dependencies]
+python = "3.15.*"
+polars = "*"
+
+[pypi-dependencies]
+snakemake = { git = "https://github.com/snakemake/snakemake.git", rev = "0ec2a0797c1dca2c7c38699fc9d6578db02f6c89" }
+snakemake-software-deployment-plugin-pixi = { git = "https://github.com/cademirch/snakemake-software-deployment-plugin-pixi.git", rev = "315e0f3113daefc2dfeda3a48777cd1acb2707e0" }
+snakemake-executor-plugin-slurm = { git = "https://github.com/snakemake/snakemake-executor-plugin-slurm.git", rev = "8c2af56eb7dd1e0b78866691d6981f1d8327e0db" }
+snakemake-executor-plugin-slurm-jobstep = "==0.6.1"
+
+[tasks]
+test = "snakemake --snakefile workflow/Snakefile --directory .tests/integration --profile profiles/local --cores 2 --forceall"
+
+# Targets must precede --configfile, so they ride in the second argument, not after `--`.
+[tasks.slurm]
+args = ["run_id", { arg = "snakemake_args", default = "" }]
+cmd = "snakemake {{ snakemake_args }} --profile profiles/slurm --slurm-jobname-prefix {{ run_id }} --configfile config/{{ run_id }}/config.yaml"
+
+[feature.lint.dependencies]
+ruff = ">=0.16.9,<0.17"
+numpydoc = ">=1.11.0,<2"
+
+[feature.lint.tasks]
+lint = "ruff check && ruff format --check && numpydoc lint workflow/scripts/*.py"
+
+[environments]
+lint = { features = ["lint"], no-default-feature = true }
+
+[exclude-newer]
+ca-certificates = "0d"
+certifi = "0d"
+pip = "0d"
+
+[pypi-exclude-newer]
+certifi = "0d"
+pip = "0d"

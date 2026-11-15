@@ -1,0 +1,4 @@
+# Copy to config/<run_id>/config.yaml.
+outdir: results
+pixi_env: default
+run_id: <run_id>         # YYYY-MM-DD-<what>; names results/, logs/ and benchmarks/ subdirs
