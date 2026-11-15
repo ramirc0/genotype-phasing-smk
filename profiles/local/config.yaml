@@ -36,6 +36,7 @@ set-threads:
   admixture: 8
   select_reference: 1
   local_ancestry_rfmix2: 8
+  local_ancestry_gnomix: 8
   plot_local_ancestry: 1
 
 set-resources:
@@ -54,4 +55,5 @@ set-resources:
   admixture: {mem_mb: 8000}
   select_reference: {mem_mb: 2000}
   local_ancestry_rfmix2: {mem_mb: 16000}
+  local_ancestry_gnomix: {mem_mb: 16000}
   plot_local_ancestry: {mem_mb: 8000}

@@ -65,7 +65,12 @@ Across the genome:
    component exceeds `local_ancestry.min_purity`, as in the SOP. The cohort's
    shares go to `global_ancestry.tsv`.
 10. The tool set by `local_ancestry.tool` calls local ancestry per chromosome.
-    `local_ancestry_rfmix2` runs RFMix2, the SOP's tool.
+    Both tools read the same files and write msp files in RFMix2's layout, which
+    Tractor reads.
+    - `local_ancestry_rfmix2` (default) runs RFMix2, the SOP's tool.
+    - `local_ancestry_gnomix` runs gnomix. It trains a model on admixed samples
+      that it simulates from the reference, then deletes them. Phase correction
+      stays off, so its haplotypes stay those of the phased VCF.
 11. `plot_local_ancestry` draws both haplotypes of every chromosome for 10
     random samples, so tract lengths can be checked before mapping, as the SOP
     asks. It sums each sample's tracts into genome-wide shares and plots them
@@ -94,6 +99,7 @@ workflow/
     relatedness.smk      array-site genotypes, kinship, unrelated set, genetic PCs
     ancestry.smk         reference candidates, ADMIXTURE, reference selection, plots
     rfmix2.smk           local ancestry with RFMix2
+    gnomix.smk           local ancestry with gnomix
     provenance.smk       resolved config snapshot
   scripts/
     fetch_resources.sh   downloads the panel, genetic maps, array manifest and LD regions
@@ -103,7 +109,9 @@ workflow/
     select_reference.py  ADMIXTURE component matching and purity filter
     plot_local_ancestry.py
                          karyograms and genome-wide ancestry from local calls
+    gnomix_config.py     sets a gnomix config's seed, cores and cleanup per job
   envs/pixi.toml         rule envs (pixi workspace)
+  envs/gnomix/           gnomix package recipe at a pinned commit, with a bug fix
 .tests/integration/      toy inputs for the end-to-end test; make_test_data.sh records how they were built
 profiles/
   local/config.yaml      local execution
@@ -178,11 +186,17 @@ The launcher env (`pixi.toml` at the root) has Snakemake main and its plugins
 for pixi deployment and SLURM. The rule envs live in a second pixi workspace,
 `workflow/envs/`. Its `pixi.lock` pins every package. An `onstart` hook
 installs it before the first job, because parallel SLURM jobs would otherwise
-race to install it. `default` runs bcftools, plink2, ADMIXTURE, RFMix2 and the
-Python scripts. SHAPEIT5 pins htslib
-below 1.25, and so does Eagle2, so each runs in its own env. Both workspaces exclude
-packages published in the last 7 days. The exceptions are certifi, bcftools and htslib, so their security fixes
-land at once.
+race to install it.
+
+- `default` runs bcftools, plink2, ADMIXTURE, RFMix2 and the Python scripts.
+- `shapeit5` and `eagle2` each hold one phaser, because both pin htslib below
+  1.25.
+- `gnomix` runs gnomix, built by `workflow/envs/gnomix/` from upstream commit
+  `cd15f65`, because gnomix has no releases or package. The recipe patches one
+  call that crashes when gnomix deletes its simulated data.
+
+Both workspaces exclude packages published in the last 7 days. The exceptions
+are certifi, bcftools and htslib, so their security fixes land at once.
 
 Fetch the reference resources once, about 20 GB:
 
@@ -244,7 +258,8 @@ belongs to.
 | `kinship_cutoff` | KING kinship above which a pair counts as related. Default `0.0442`, the third-degree bound, as in the SOP. |
 | `num_pcs` | Number of genetic PCs. Default `20`. The SOP uses 10 for local ancestry and 5 for bulk eQTL. |
 | `panel_metadata` | gnomAD HGDP+1kGP metadata TSV. It MUST have the columns `s`, `hgdp_tgp_meta.Population` and `sample_filters.release_related`. |
-| `local_ancestry.tool` | `rfmix2`. The Snakefile includes only that tool's rule file. |
+| `local_ancestry.tool` | `rfmix2` (default) or `gnomix`. The Snakefile includes only that tool's rule file. |
+| `local_ancestry.gnomix_config` | Optional gnomix config to start from. Default: gnomix's `configs/config_array.yaml`. The rule sets its seed, cores and cleanup. |
 | `local_ancestry.populations` | Panel populations of each ancestry, which may enter the reference. The ancestry order sets the codes in the msp files. |
 | `local_ancestry.min_purity` | Smallest ADMIXTURE share of its own ancestry for a candidate to join the reference. Default `0.9` for AFR and EUR and `0.8` for NAT, as in the SOP. |
 | `local_ancestry.rfmix_generations` | RFMix2 `--generations`. Default `8`. The SOP raises or lowers it when tracts look too fragmented or too uniform. |

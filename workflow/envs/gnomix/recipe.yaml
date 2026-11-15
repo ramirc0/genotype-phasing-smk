@@ -1,0 +1,45 @@
+# gnomix has no releases and no packaging, so this installs its scripts at a pinned commit.
+context:
+  version: 0.0.0.20260903
+  commit: cd15f65eadfca8e2bbf209eb69a82978a200c5fd
+
+package:
+  name: gnomix
+  version: ${{ version }}
+
+source:
+  url: https://github.com/AI-sandbox/gnomix/archive/${{ commit }}.tar.gz
+  sha256: 846ef1ba78b569c04acaadf1c6c6e6698de881b005461f9d3ea70bf29bd6b6d8
+  # gnomix.py passes verbose= to run_shell_cmd, which takes verb=, so rm_data crashes.
+  patches:
+    - run-shell-cmd-verb.patch
+
+build:
+  number: 0
+  noarch: generic
+  script:
+    - export PACKAGE_HOME=$PREFIX/share/gnomix
+    - mkdir -p $PACKAGE_HOME $PREFIX/bin
+    - cp -r gnomix.py config.yaml configs src $PACKAGE_HOME/
+    - printf '#!/usr/bin/env bash\nexec python "%s/gnomix.py" "$@"\n' "$PACKAGE_HOME" > $PREFIX/bin/gnomix
+    - chmod 755 $PREFIX/bin/gnomix
+
+requirements:
+  run:
+    - python >=3.9
+    - matplotlib-base
+    - numpy
+    - pandas
+    - pyyaml
+    - scikit-allel
+    - scikit-learn
+    - scipy
+    - seaborn
+    - sklearn-crfsuite
+    - tqdm
+    - uncertainty-calibration
+    - xgboost
+
+tests:
+  - script:
+      - test -f $PREFIX/share/gnomix/gnomix.py

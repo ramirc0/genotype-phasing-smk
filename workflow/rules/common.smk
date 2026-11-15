@@ -18,6 +18,7 @@ BENCHDIR = f"benchmarks/{RUN_ID}"
 SOFTWARE_ENV = pixi(workspace="../envs", env=config["pixi_env"], locked=True)
 SHAPEIT5_ENV = pixi(workspace="../envs", env="shapeit5", locked=True)
 EAGLE2_ENV = pixi(workspace="../envs", env="eagle2", locked=True)
+GNOMIX_ENV = pixi(workspace="../envs", env="gnomix", locked=True)
 
 CALLSET = config["callset"]
 FASTA = config["fasta"]
@@ -42,7 +43,7 @@ if config["phaser"] not in PHASERS:
     raise WorkflowError(f"phaser MUST be one of {', '.join(PHASERS)}.")
 
 LAI = config["local_ancestry"]
-LAI_TOOLS = ("rfmix2",)
+LAI_TOOLS = ("rfmix2", "gnomix")
 if LAI["tool"] not in LAI_TOOLS:
     raise WorkflowError(f"local_ancestry.tool MUST be one of {', '.join(LAI_TOOLS)}.")
 if list(LAI["min_purity"]) != list(LAI["populations"]):

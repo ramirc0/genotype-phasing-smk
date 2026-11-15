@@ -3,6 +3,7 @@ name = "genotype-phasing-smk-envs"
 channels = ["conda-forge", "bioconda"]
 platforms = ["linux-64"]
 exclude-newer = "7d"
+preview = ["pixi-build"]
 
 [dependencies]
 bcftools = "*"
@@ -28,9 +29,18 @@ shapeit5 = "*"
 [feature.eagle2.dependencies]
 eagle2 = "*"
 
+# gnomix has no package, so workflow/envs/gnomix/ builds one from a pinned commit.
+[feature.gnomix.dependencies]
+gnomix = { path = "gnomix" }
+bcftools = "*"
+python = "3.13.*"
+# scikit-allel accepts any dask. Unpinned, the solver picks 2023.3, whose dask.array imports numpy.compat, gone in numpy 2.
+dask-core = ">=2025"
+
 [environments]
 shapeit5 = { features = ["shapeit5"], no-default-feature = true }
 eagle2 = { features = ["eagle2"], no-default-feature = true }
+gnomix = { features = ["gnomix"], no-default-feature = true }
 
 [exclude-newer]
 ca-certificates = "0d"

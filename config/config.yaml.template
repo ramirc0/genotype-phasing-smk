@@ -22,7 +22,8 @@ num_pcs: 20
 
 panel_metadata: /data/zusers/ramirezc/data/genotype-phasing-smk/resources/hgdp1kgp/gnomad_meta_updated.tsv
 local_ancestry:
-  tool: rfmix2
+  tool: rfmix2           # or gnomix
+  # gnomix_config: <path>   # gnomix base config; defaults to its configs/config_array.yaml
   populations:           # panel populations whose unrelated samples may enter the reference
     AFR: [YRI, ESN, GWD, MSL, LWK, Yoruba, Mandenka]
     EUR: [CEU, GBR, IBS, TSI, French, Italian, Tuscan, Basque, Orcadian, Sardinian, Russian]

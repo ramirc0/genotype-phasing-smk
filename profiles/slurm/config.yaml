@@ -44,6 +44,7 @@ set-threads:
   admixture: 16
   select_reference: 1
   local_ancestry_rfmix2: 16
+  local_ancestry_gnomix: 16
   plot_local_ancestry: 1
 
 set-resources:              # tune from benchmarks/ TSVs after a real run
@@ -101,6 +102,10 @@ set-resources:              # tune from benchmarks/ TSVs after a real run
     mem_mb: 4000 * attempt
     runtime: 30m
   local_ancestry_rfmix2:
+    mem_mb: 64000 * attempt
+    runtime: 720m
+    slurm_partition: 12hours,5days
+  local_ancestry_gnomix:
     mem_mb: 64000 * attempt
     runtime: 720m
     slurm_partition: 12hours,5days

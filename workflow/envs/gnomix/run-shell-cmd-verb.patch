@@ -1,0 +1,11 @@
+--- a/gnomix.py
++++ b/gnomix.py
+@@ -242,7 +242,7 @@
+         for split in splits_to_rem: # train1, train2, val (if val is there)
+             chm_path = join_paths(data_path, split, verb=False)
+             remove_data_cmd = "rm -r " + chm_path
+-            run_shell_cmd(remove_data_cmd, verbose=False)
++            run_shell_cmd(remove_data_cmd, verb=False)
+ 
+     return model
+     
