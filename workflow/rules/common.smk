@@ -29,18 +29,29 @@ AUTOSOMES = [f"chr{i}" for i in range(1, 23)]
 CHROMOSOMES = config["chromosomes"]
 if not CHROMOSOMES or len(set(CHROMOSOMES)) != len(CHROMOSOMES):
     raise WorkflowError("chromosomes MUST be a non-empty list without repeats.")
-if not set(CHROMOSOMES) <= set(AUTOSOMES):
-    raise WorkflowError("chromosomes MUST be autosomes, chr1 to chr22.")
+if not set(CHROMOSOMES) <= set(AUTOSOMES) | {"chrX"}:
+    raise WorkflowError("chromosomes MUST be chr1 to chr22, optionally with chrX.")
 
 # Relatedness, PCs and ancestry use autosomes only.
 PHASED_AUTOSOMES = [chrom for chrom in CHROMOSOMES if chrom in AUTOSOMES]
 
 # Each region is phased on its own. bcftools and SHAPEIT5 read the span after the name.
-REGION_SPAN = {chrom: chrom for chrom in CHROMOSOMES}
+# chrX splits at the GRCh38 PAR bounds, because samples with one X are haploid only between them.
+CHRX_REGIONS = {
+    "chrX_par1": "chrX:10001-2781479",
+    "chrX_nonpar": "chrX:2781480-155701382",
+    "chrX_par2": "chrX:155701383-156030895",
+}
+REGION_SPAN = {chrom: chrom for chrom in PHASED_AUTOSOMES}
+if "chrX" in CHROMOSOMES:
+    REGION_SPAN |= CHRX_REGIONS
 
 PHASERS = ("shapeit5", "eagle2")
 if config["phaser"] not in PHASERS:
     raise WorkflowError(f"phaser MUST be one of {', '.join(PHASERS)}.")
+# Eagle2 takes haploid calls, but RFMix2, Tractor and the SHAPEIT5 panel code them as diploid.
+if "chrX" in CHROMOSOMES and config["phaser"] != "shapeit5":
+    raise WorkflowError("chrX needs phaser: shapeit5.")
 
 LAI = config["local_ancestry"]
 LAI_TOOLS = ("rfmix2", "gnomix")

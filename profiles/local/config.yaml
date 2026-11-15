@@ -24,6 +24,8 @@ set-threads:
   prepare_genotypes: 4
   phase_shapeit5: 8
   phase_eagle2: 8
+  infer_x_ploidy: 2
+  concat_chrx: 2
   finalize_phased: 2
   export_pgen: 4
   array_genotypes: 2
@@ -44,6 +46,8 @@ set-resources:
   prepare_genotypes: {mem_mb: 4000}
   phase_shapeit5: {mem_mb: 16000}
   phase_eagle2: {mem_mb: 16000}
+  infer_x_ploidy: {mem_mb: 4000}
+  concat_chrx: {mem_mb: 2000}
   finalize_phased: {mem_mb: 2000}
   export_pgen: {mem_mb: 8000}
   array_genotypes: {mem_mb: 2000}

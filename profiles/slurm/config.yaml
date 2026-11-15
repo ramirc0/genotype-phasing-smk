@@ -32,6 +32,8 @@ set-threads:
   prepare_genotypes: 4
   phase_shapeit5: 16
   phase_eagle2: 16
+  infer_x_ploidy: 2
+  concat_chrx: 2
   finalize_phased: 4
   export_pgen: 4
   array_genotypes: 2
@@ -61,6 +63,12 @@ set-resources:              # tune from benchmarks/ TSVs after a real run
     mem_mb: 64000 * attempt
     runtime: 720m
     slurm_partition: 12hours,5days
+  infer_x_ploidy:
+    mem_mb: 8000 * attempt
+    runtime: 30m
+  concat_chrx:
+    mem_mb: 4000 * attempt
+    runtime: 30m
   finalize_phased:
     mem_mb: 4000 * attempt
     runtime: 240m

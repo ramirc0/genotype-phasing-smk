@@ -1,6 +1,67 @@
 # Final phased VCFs and their pgen copies. The phaser's rule file writes phase/.
 
 
+# plink2's X F-statistic is near 1 with one X copy (XY, XYY, X0) and near 0 with two
+# or more (XX, XXY, XXX), which is what phasing needs. Samples it cannot call stay diploid.
+rule infer_x_ploidy:
+    input:
+        bcf=f"{OUTDIR}/prepare/chrX_nonpar.bcf",
+        csi=f"{OUTDIR}/prepare/chrX_nonpar.bcf.csi",
+    output:
+        sexcheck=f"{OUTDIR}/x_ploidy.tsv",
+        haploids=f"{OUTDIR}/haploid_samples.txt",
+        psam=f"{OUTDIR}/infer_x_ploidy/x.psam",
+    params:
+        prefix=f"{OUTDIR}/infer_x_ploidy/x",
+    log:
+        f"{LOGDIR}/infer_x_ploidy.txt",
+    benchmark:
+        f"{BENCHDIR}/infer_x_ploidy.tsv"
+    software:
+        SOFTWARE_ENV
+    shell:
+        r"""
+        exec &> >(tee {log:q})
+        mkdir -p "$(dirname {params.prefix:q})"
+
+        plink2 \
+            --bcf {input.bcf:q} \
+            --impute-sex max-female-xf=0.2 min-male-xf=0.8 \
+            --make-just-psam \
+            --threads {threads} \
+            --memory $(( {resources.mem_mb:q} * 4 / 5 )) \
+            --out {params.prefix:q}
+
+        sed '1s/^#//' {params.prefix:q}.sexcheck > {output.sexcheck:q}
+        awk -F'\t' 'NR == 1 {{ for (i = 1; i <= NF; i++) col[$i] = i; next }}
+            $col["SNPSEX"] == 1 {{ print $col["IID"] }}' {output.sexcheck:q} > {output.haploids:q}
+        echo "Samples with one X: $(wc -l < {output.haploids:q})"
+
+        sync {output:q}
+        """
+
+
+rule concat_chrx:
+    input:
+        [f"{OUTDIR}/phase/{region}.bcf" for region in CHRX_REGIONS],
+    output:
+        f"{OUTDIR}/phase/chrX.bcf",
+    log:
+        f"{LOGDIR}/concat_chrx.txt",
+    benchmark:
+        f"{BENCHDIR}/concat_chrx.tsv"
+    software:
+        SOFTWARE_ENV
+    shell:
+        r"""
+        exec &> >(tee {log:q})
+
+        bcftools concat -Ob --output {output:q} {input:q}
+
+        sync {output:q}
+        """
+
+
 rule finalize_phased:
     input:
         f"{OUTDIR}/phase/{{chrom}}.bcf",
@@ -33,11 +94,16 @@ rule finalize_phased:
 
 rule export_pgen:
     input:
-        f"{OUTDIR}/phased/{{chrom}}.vcf.gz",
+        vcf=f"{OUTDIR}/phased/{{chrom}}.vcf.gz",
+        sex=lambda w: [f"{OUTDIR}/infer_x_ploidy/x.psam"] if w.chrom == "chrX" else [],
     output:
         multiext(f"{OUTDIR}/pgen/{{chrom}}", ".pgen", ".pvar", ".psam"),
     params:
         prefix=lambda w: f"{OUTDIR}/pgen/{w.chrom}",
+        # plink2 needs sex to load chrX. --split-par keeps PAR calls diploid in every sample.
+        chrx=lambda w, input: (
+            ["--split-par", "hg38", "--update-sex", input.sex[0]] if input.sex else []
+        ),
     log:
         f"{LOGDIR}/export_pgen/{{chrom}}.txt",
     benchmark:
@@ -50,7 +116,8 @@ rule export_pgen:
 
         # plink2 otherwise takes half the node's memory, past the job's limit.
         plink2 \
-            --vcf {input:q} \
+            --vcf {input.vcf:q} \
+            {params.chrx:q} \
             --make-pgen \
             --threads {threads} \
             --memory $(( {resources.mem_mb:q} * 4 / 5 )) \

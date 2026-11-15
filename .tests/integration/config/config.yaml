@@ -5,7 +5,7 @@ run_id: default
 callset: resources/callset.vcf.gz
 fasta: resources/reference.fa.gz
 exclude_samples: config/exclude_samples.tsv
-chromosomes: [chr20]
+chromosomes: [chr20, chrX]
 
 phaser: shapeit5
 panel: resources/panel/{region}.bcf

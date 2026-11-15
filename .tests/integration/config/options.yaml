@@ -1,5 +1,6 @@
 # Overrides for `pixi run test-options`: the non-default options.
 run_id: options
+chromosomes: [chr20]    # chrX needs SHAPEIT5
 phaser: eagle2
 local_ancestry:
   tool: gnomix

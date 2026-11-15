@@ -35,6 +35,22 @@ Each chromosome runs on its own:
 4. `export_pgen` writes a plink2 pgen copy, which keeps the phase. Its
    chromosome codes drop the `chr` prefix, as tensorQTL's SOP example expects.
 
+With `chrX` in `chromosomes`, chrX runs as three regions split at the GRCh38 PAR
+bounds, because samples with one X are haploid only between them:
+
+- `infer_x_ploidy` imputes each sample's sex from its X F-statistic with plink2
+  on the prepared non-PAR genotypes. The F-statistic counts X copies, which is
+  what phasing needs: XY, XYY and X0 samples come out haploid, and XX, XXY and
+  XXX samples diploid. Samples plink2 cannot call stay diploid.
+- `phase_shapeit5` passes the haploid samples to `--haploids` outside the PARs.
+  SHAPEIT5 sets their hets missing and imputes them as homozygous.
+- `concat_chrx` joins the three regions before `finalize_phased`.
+- `export_pgen` splits the PARs with `--split-par hg38` and takes the imputed
+  sex, so PAR calls stay diploid in every sample.
+
+chrX needs `phaser: shapeit5`. Eagle2 takes haploid calls, but RFMix2, Tractor
+and the SHAPEIT5 panel code them as diploid.
+
 Across the genome:
 
 5. `make_array_sites` reads the autosomal SNP positions from the array
@@ -81,8 +97,8 @@ Across the genome:
     asks. It sums each sample's tracts into genome-wide shares and plots them
     against ADMIXTURE.
 
-The callset MUST code every genotype as diploid, as GATK joint genotyping at
-ploidy 2 does. Relatives stay in phasing. `unrelated.txt` filters samples at
+The callset MUST code every genotype as diploid, chrX included, as GATK joint
+genotyping at ploidy 2 does. Relatives stay in phasing. `unrelated.txt` filters samples at
 mapping.
 
 ### Layout
@@ -138,6 +154,8 @@ Everything goes under `results/<run_id>/`. Logs and benchmarks go to
 | `phase/<chrom>.bcf` | Phaser output |
 | `phased/<chrom>.vcf.gz` | Phased genotypes with recomputed tags and `CHROM:POS:REF:ALT` IDs |
 | `pgen/<chrom>.{pgen,pvar,psam}` | plink2 copy of the phased genotypes |
+| `x_ploidy.tsv` | plink2 sex imputation: X F-statistic and imputed sex per sample (chrX runs only) |
+| `haploid_samples.txt` | Samples with one X, phased as haploid outside the PARs (chrX runs only) |
 | `array/<chrom>.bcf` | Phased genotypes at array SNPs |
 | `array/cohort.{pgen,pvar,psam}` | Array-site genotypes of all chromosomes |
 | `king.kin0` | Sample pairs with KING kinship above `kinship_cutoff` |
@@ -256,8 +274,8 @@ belongs to.
 | `callset` | Joint-called VCF with a `.tbi`. |
 | `fasta` | Reference FASTA of the callset, with its `.fai` (and `.gzi` if bgzipped). |
 | `exclude_samples` | Headerless TSV of sample ID and reason. Lines starting with `#` are ignored. Every ID MUST be in the callset. |
-| `chromosomes` | Chromosomes to phase, `chr1` to `chr22`. |
-| `phaser` | `shapeit5` (default) or `eagle2`. The Snakefile includes only that phaser's rule file. |
+| `chromosomes` | Chromosomes to phase, `chr1` to `chr22`, optionally with `chrX`. Relatedness, PCs and ancestry use the autosomes. |
+| `phaser` | `shapeit5` (default) or `eagle2`. The Snakefile includes only that phaser's rule file. chrX needs `shapeit5`. |
 | `panel` | Phased reference panel BCF per region, with `{region}` in the path and a `.csi` beside it. |
 | `genetic_maps.shapeit5` | SHAPEIT5 genetic map per region, with `{region}` in the path. |
 | `genetic_maps.eagle2` | Eagle2 genetic map, one file for all chromosomes. |
