@@ -24,7 +24,7 @@ rule make_array_sites:
         """
 
 
-# The SOP thins WGS genotypes to an array SNP set before local ancestry. A split
+# Local ancestry runs on array SNPs thinned from the WGS genotypes. A split
 # multiallelic site leaves several SNP records at one position, and RFMix2 matches
 # records by position alone, so only positions with one SNP record are kept.
 rule array_genotypes:
@@ -100,8 +100,8 @@ rule cohort_array_pgen:
         """
 
 
-# KING-robust kinship tolerates population structure. The SOP drops relatives of
-# third degree and closer, and 0.0442 is that degree's lower kinship bound.
+# KING-robust kinship tolerates population structure. 0.0442, the default cutoff,
+# is the lower kinship bound of third-degree relatives.
 rule relatedness:
     input:
         multiext(f"{OUTDIR}/array/cohort", ".pgen", ".pvar", ".psam"),

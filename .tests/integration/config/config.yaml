@@ -25,7 +25,7 @@ local_ancestry:
     AFR: [YRI, ESN, GWD, MSL, LWK, Yoruba, Mandenka]
     EUR: [CEU, GBR, IBS, TSI, French, Italian, Tuscan, Basque, Orcadian, Sardinian, Russian]
     NAT: [PEL, MXL, Maya, Pima, Karitiana, Surui, Colombian]
-  min_purity: {AFR: 0.5, EUR: 0.5, NAT: 0.5}   # the toy span has too few SNPs for SOP purity
+  min_purity: {AFR: 0.5, EUR: 0.5, NAT: 0.5}   # the toy span has too few SNPs for the default purity
   rfmix_generations: 8
 seed: 1
 

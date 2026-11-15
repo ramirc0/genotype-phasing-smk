@@ -1,9 +1,9 @@
 """Summarize local ancestry calls and plot them for review.
 
-The SOP asks to check that ancestry tracts have plausible lengths before mapping.
-This script draws both haplotypes of every chromosome for a few random samples,
-and compares each sample's genome-wide ancestry, summed from its tracts, with
-its ADMIXTURE estimate.
+Ancestry tracts need plausible lengths before mapping. This script draws both
+haplotypes of every chromosome for a few random samples, and compares each
+sample's genome-wide ancestry, summed from its tracts, with its ADMIXTURE
+estimate.
 """
 
 import argparse

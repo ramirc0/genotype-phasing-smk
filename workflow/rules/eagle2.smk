@@ -1,4 +1,4 @@
-# Phasing with Eagle2, the SOP's phaser.
+# Phasing with Eagle2.
 
 
 # Eagle's auto rule runs one iteration when the cohort is under half the panel, so each

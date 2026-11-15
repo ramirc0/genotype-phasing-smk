@@ -3,7 +3,7 @@
 ADMIXTURE numbers its components arbitrarily. Ancestries and components are
 matched one to one, by the matching with the largest summed mean share of each
 ancestry's candidates. A candidate joins the reference when its share of its own
-ancestry's component exceeds that ancestry's purity cutoff, as in the SOP. The
+ancestry's component exceeds that ancestry's purity cutoff. The
 other samples, the cohort's, get their ADMIXTURE shares per ancestry.
 """
 

@@ -1,4 +1,4 @@
-# Local ancestry with RFMix2, the SOP's tool.
+# Local ancestry with RFMix2.
 
 
 rule local_ancestry_rfmix2:
