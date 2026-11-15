@@ -1,8 +1,10 @@
 # Phasing with SHAPEIT5.
 
 
-# The panel and the cohort condition each other. The SHAPEIT5 docs skip phase_rare
-# below 2,000 samples. Sites absent from the panel are dropped, and the log counts them.
+# The first pass phases against the panel, where panel and cohort condition each other,
+# and leaves out sites the panel lacks. Those are real variants the panel's QC removed,
+# so a second pass phases every site from the cohort alone, holding the first pass's
+# phase fixed as a scaffold. The SHAPEIT5 docs skip phase_rare below 2,000 samples.
 # Outside the PARs, SHAPEIT5 sets hets of samples with one X missing and imputes them
 # as homozygous.
 rule phase_shapeit5:
@@ -31,10 +33,20 @@ rule phase_shapeit5:
     shell:
         r"""
         exec &> >(tee {log:q})
+        WORKDIR=$(mktemp -d)
+        trap 'rm -rf "$WORKDIR"' EXIT
 
         SHAPEIT5_phase_common \
             --input {input.bcf:q} \
             --reference {input.panel:q} \
+            --map {input.map:q} \
+            --region {params.region:q} \
+            {params.haploids:q} \
+            --thread {threads} \
+            --output "$WORKDIR/scaffold.bcf"
+        SHAPEIT5_phase_common \
+            --input {input.bcf:q} \
+            --scaffold "$WORKDIR/scaffold.bcf" \
             --map {input.map:q} \
             --region {params.region:q} \
             {params.haploids:q} \

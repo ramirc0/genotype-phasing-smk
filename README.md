@@ -20,13 +20,17 @@ Each chromosome runs on its own:
    no sample gains a REF allele it lacks, and drops `*` alleles. Genotypes with
    depth below `min_dp` go missing. Sites below `min_maf` or above
    `max_missing` are dropped. Only GT is kept.
-2. The phaser set by `phaser` phases against the reference panel. Both
-   phasers impute missing genotypes and drop sites absent from the panel, and
-   their logs count them.
-   - `phase_shapeit5` (default) runs SHAPEIT5 `phase_common`. Panel and cohort
-     haplotypes condition each other. The SHAPEIT5 docs skip `phase_rare` below
-     2,000 samples.
-   - `phase_eagle2` runs Eagle2, the SOP's phaser. Eagle's auto rule runs one
+2. The phaser set by `phaser` phases against the reference panel and imputes
+   missing genotypes. The panel lacks some common cohort sites, which its own
+   QC removed though other callsets keep them.
+   - `phase_shapeit5` (default) runs SHAPEIT5 `phase_common` twice. The first
+     pass phases against the panel, where panel and cohort haplotypes condition
+     each other, and leaves out the sites the panel lacks. The second pass
+     phases every site from the cohort alone, holding the first pass's phase
+     fixed as a scaffold, so no site is lost. The SHAPEIT5 docs skip
+     `phase_rare` below 2,000 samples.
+   - `phase_eagle2` runs Eagle2, the SOP's phaser. It drops the sites the panel
+     lacks, and its log counts them. Eagle's auto rule runs one
      iteration when the cohort is under half the panel, which phases each
      sample against the panel alone. The rule sets `--pbwtIters 2`, so cohort
      haplotypes inform each other.
@@ -151,7 +155,7 @@ Everything goes under `results/<run_id>/`. Logs and benchmarks go to
 | Path | Contents |
 |---|---|
 | `prepare/<chrom>.bcf` | Filtered genotypes, the phaser's input |
-| `phase/<chrom>.bcf` | Phaser output |
+| `phase/<chrom>.bcf` | Phaser output; with chrX, also one file per chrX region |
 | `phased/<chrom>.vcf.gz` | Phased genotypes with recomputed tags and `CHROM:POS:REF:ALT` IDs |
 | `pgen/<chrom>.{pgen,pvar,psam}` | plink2 copy of the phased genotypes |
 | `x_ploidy.tsv` | plink2 sex imputation: X F-statistic and imputed sex per sample (chrX runs only) |
