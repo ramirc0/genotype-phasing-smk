@@ -3,6 +3,7 @@
 
 # plink2's X F-statistic is near 1 with one X copy (XY, XYY, X0) and near 0 with two
 # or more (XX, XXY, XXX), which is what phasing needs. Samples it cannot call stay diploid.
+# Split multiallelics leave half-calls such as 1/., which plink2 rejects by default.
 rule infer_x_ploidy:
     input:
         bcf=f"{OUTDIR}/prepare/chrX_nonpar.bcf",
@@ -26,6 +27,7 @@ rule infer_x_ploidy:
 
         plink2 \
             --bcf {input.bcf:q} \
+            --vcf-half-call missing \
             --impute-sex max-female-xf=0.2 min-male-xf=0.8 \
             --make-just-psam \
             --threads {threads} \
