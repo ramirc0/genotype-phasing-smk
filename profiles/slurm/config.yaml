@@ -56,7 +56,8 @@ set-resources:              # tune from benchmarks/ TSVs after a real run
     runtime: 240m
     slurm_partition: 4hours,12hours,5days
   phase_shapeit5:
-    mem_mb: 32000 * attempt
+    # chrX non-PAR has a heavy tail of conditioning states: 34 GB on its first 27 Mb.
+    mem_mb: (128000 if wildcards.region == "chrX_nonpar" else 32000) * attempt
     runtime: 720m
     slurm_partition: 12hours,5days
   phase_eagle2:
