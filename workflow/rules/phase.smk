@@ -94,6 +94,35 @@ rule finalize_phased:
         """
 
 
+rule gather_phased:
+    input:
+        [f"{OUTDIR}/phased/{chrom}.vcf.gz" for chrom in GENOME_ORDER],
+    output:
+        vcf=f"{OUTDIR}/phased/genome.vcf.gz",
+        tbi=f"{OUTDIR}/phased/genome.vcf.gz.tbi",
+    log:
+        f"{LOGDIR}/gather_phased.txt",
+    benchmark:
+        f"{BENCHDIR}/gather_phased.tsv"
+    software:
+        SOFTWARE_ENV
+    shell:
+        r"""
+        exec &> >(tee {log:q})
+
+        bcftools concat \
+            --threads {threads} \
+            -Oz \
+            --output {output.vcf:q} \
+            --write-index=tbi \
+            {input:q}
+
+        echo "Phased records: $(bcftools index --nrecords {output.vcf:q})"
+
+        sync {output:q}
+        """
+
+
 rule export_pgen:
     input:
         vcf=f"{OUTDIR}/phased/{{chrom}}.vcf.gz",

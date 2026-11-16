@@ -29,6 +29,7 @@ set-threads:
   infer_x_ploidy: 2
   concat_chrx: 2
   finalize_phased: 2
+  gather_phased: 2
   export_pgen: 4
   array_genotypes: 2
   cohort_array_pgen: 8

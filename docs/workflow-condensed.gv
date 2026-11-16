@@ -13,7 +13,7 @@ digraph workflow {
     label = "Phase"
     prepare  [class = step, label = "Prepare\nprepare_genotypes, infer_x_ploidy"]
     phase    [class = step, label = "Phase\nSHAPEIT5 or Eagle2"]
-    finalize [class = step, label = "Finalize\nconcat_chrx, finalize_phased, export_pgen"]
+    finalize [class = step, label = "Finalize\nconcat_chrx, finalize_phased, gather_phased, export_pgen"]
     prepared [class = data, label = "prepare/*.bcf"]
     phased   [class = data, label = "phased/*.vcf.gz"]
   }
@@ -33,7 +33,7 @@ digraph workflow {
     admixture      [class = step, label = "Admixture\nADMIXTURE, select_reference"]
     local_ancestry [class = step, label = "Local ancestry\nRFMix2 or gnomix"]
     tracts         [class = step, label = "Extract tracts\nTractor"]
-    plot           [class = step, label = "Plot local ancestry\npoikilos"]
+    plot           [class = step, label = "Plot local ancestry\npoikilos, pqplot"]
     matched        [class = data, label = "ancestry/*.bcf"]
     sample_map     [class = data, label = "lai_sample_map.tsv"]
     msp            [class = data, label = "local_ancestry/*.msp.tsv"]
@@ -41,6 +41,7 @@ digraph workflow {
   }
 
   pgen       [class = result, label = "pgen/"]
+  genome_vcf [class = result, label = "phased/genome.vcf.gz"]
   kin0       [class = result, label = "king.kin0"]
   pcs_tsv    [class = result, label = "pcs.tsv"]
   tract_txt  [class = result, label = "tracts/"]
@@ -51,6 +52,7 @@ digraph workflow {
   panel -> phase
   phase -> finalize -> phased
   finalize -> pgen
+  finalize -> genome_vcf
 
   phased -> array -> array_bcf
   array_bcf -> relatedness

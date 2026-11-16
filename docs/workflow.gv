@@ -29,6 +29,7 @@ digraph workflow {
     concat_chrx       [class = step, label = "Concat chrX\nbcftools"]
     finalize_phased   [class = step, label = "Finalize phased\nbcftools"]
     export_pgen       [class = step, label = "Export pgen\nplink2"]
+    gather_phased     [class = step, label = "Gather phased\nbcftools"]
     prepared          [class = data, label = "prepare/*.bcf"]
     haploids          [class = data, label = "haploid_samples.txt"]
     x_psam            [class = data, label = "x.psam"]
@@ -75,6 +76,7 @@ digraph workflow {
 
   snapshot_json [class = result, label = "config.snapshot.json"]
   pgen          [class = result, label = "pgen/*.pgen"]
+  genome_vcf    [class = result, label = "phased/genome.vcf.gz"]
   kin0          [class = result, label = "king.kin0"]
   pcs           [class = result, label = "pcs.tsv"]
   tracts        [class = result, label = "tracts/*.dosage.txt.gz"]
@@ -110,6 +112,7 @@ digraph workflow {
   phased -> export_pgen
   x_psam -> export_pgen
   export_pgen -> pgen
+  phased -> gather_phased -> genome_vcf
 
   manifest -> make_array_sites -> array_sites
   phased -> array_genotypes

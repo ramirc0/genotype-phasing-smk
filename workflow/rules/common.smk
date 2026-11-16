@@ -32,6 +32,9 @@ if not CHROMOSOMES or len(set(CHROMOSOMES)) != len(CHROMOSOMES):
 if not set(CHROMOSOMES) <= set(AUTOSOMES) | {"chrX"}:
     raise WorkflowError("chromosomes MUST be chr1 to chr22, optionally with chrX.")
 
+# The genome-wide phased VCF follows this order, whatever the order in the config.
+GENOME_ORDER = [chrom for chrom in [*AUTOSOMES, "chrX"] if chrom in CHROMOSOMES]
+
 # Relatedness, PCs and ancestry use autosomes only.
 PHASED_AUTOSOMES = [chrom for chrom in CHROMOSOMES if chrom in AUTOSOMES]
 

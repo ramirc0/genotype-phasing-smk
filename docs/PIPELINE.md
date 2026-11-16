@@ -32,7 +32,8 @@ phasing. `unrelated.txt` filters samples at mapping.
      under half the panel, which phases each sample against the panel alone.
      The rule sets `--pbwtIters 2`, so cohort haplotypes inform each other.
 3. `finalize_phased` recomputes AC, AN, AF and MAF and sets each ID to
-   `CHROM:POS:REF:ALT`.
+   `CHROM:POS:REF:ALT`. `gather_phased` joins the chromosomes into one
+   genome-wide VCF.
 4. `export_pgen` writes a plink2 pgen copy, which keeps the phase. Its
    chromosome codes drop the `chr` prefix.
 
@@ -118,6 +119,7 @@ Everything goes under `results/<run_id>/`. Logs and benchmarks go to
 | `prepare/<chrom>.bcf` | Filtered genotypes, the phaser's input |
 | `phase/<chrom>.bcf` | Phaser output; with chrX, also one file per chrX region, and the non-PAR chunks and their spans in `phase/chrX_nonpar/` |
 | `phased/<chrom>.vcf.gz` | Phased genotypes with recomputed tags and `CHROM:POS:REF:ALT` IDs |
+| `phased/genome.vcf.gz` | Every chromosome's phased VCF joined in order, chr1 to chr22 then chrX, with a `.tbi` |
 | `pgen/<chrom>.{pgen,pvar,psam}` | plink2 copy of the phased genotypes |
 | `x_ploidy.tsv` | plink2 sex imputation: X F-statistic and imputed sex per sample (chrX runs only) |
 | `haploid_samples.txt` | Samples with one X, phased as haploid outside the PARs (chrX runs only) |

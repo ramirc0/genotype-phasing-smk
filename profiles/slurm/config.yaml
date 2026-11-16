@@ -37,6 +37,7 @@ set-threads:
   infer_x_ploidy: 2
   concat_chrx: 2
   finalize_phased: 4
+  gather_phased: 4
   export_pgen: 4
   array_genotypes: 2
   cohort_array_pgen: 8
@@ -84,6 +85,10 @@ set-resources:              # about twice each rule's peak in the 936-sample run
   finalize_phased:
     mem_mb: 2000 * attempt
     runtime: 30m
+  gather_phased:
+    mem_mb: 2000 * attempt
+    runtime: 120m
+    slurm_partition: 4hours,12hours,5days
   export_pgen:
     mem_mb: 4000 * attempt
     runtime: 30m
