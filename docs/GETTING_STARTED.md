@@ -17,6 +17,8 @@ race to install it.
 - `gnomix` runs gnomix, built by `workflow/envs/gnomix/` from upstream commit
   `cd15f65`, because gnomix has no releases or package. The recipe patches one
   call that crashes when gnomix deletes its simulated data.
+- `flare` runs FLARE, built by `workflow/envs/flare/` from upstream commit
+  `d6a6c8f`, because FLARE has no releases or package.
 
 Both workspaces exclude packages published in the last 7 days. The exceptions
 are certifi, bcftools and htslib, so their security fixes land at once, and
@@ -60,6 +62,7 @@ pixi run slurm <run_id>                                          # SLURM
 pixi run slurm <run_id> "all -n"                                 # targets and flags in one quoted arg
 pixi run test                                                    # end-to-end test on toy data
 pixi run test-options                                            # the same with the non-default options
+pixi run test-flare                                              # the same with FLARE
 ```
 
 `pixi run slurm <run_id>` reads `config/<run_id>/config.yaml` and names every
@@ -91,7 +94,7 @@ belongs to.
 | `kinship_cutoff` | KING kinship above which a pair counts as related. Default `0.0442`, the lower bound of third-degree relatives. |
 | `num_pcs` | Number of genetic PCs. Default `20`. |
 | `panel_metadata` | gnomAD HGDP+1kGP metadata TSV. It MUST have the columns `s`, `hgdp_tgp_meta.Population` and `sample_filters.release_related`. |
-| `local_ancestry.tool` | `rfmix2` (default) or `gnomix`. The Snakefile includes only that tool's rule file. |
+| `local_ancestry.tool` | `rfmix2` (default), `gnomix` or `flare`. The Snakefile includes only that tool's rule file. |
 | `local_ancestry.gnomix_config` | Optional gnomix config to start from. Default: gnomix's `configs/config_array.yaml`. The rule sets its seed, cores and cleanup. |
 | `local_ancestry.populations` | Panel populations of each ancestry, which may enter the reference. The ancestry order sets the codes in the msp files. |
 | `local_ancestry.min_purity` | Smallest ADMIXTURE share of its own ancestry for a candidate to join the reference. Default `0.9` for AFR and EUR and `0.8` for NAT. |
@@ -125,6 +128,7 @@ workflow/
     ancestry.smk         reference candidates, ADMIXTURE, reference selection, plots
     rfmix2.smk           local ancestry with RFMix2
     gnomix.smk           local ancestry with gnomix
+    flare.smk            local ancestry with FLARE, and its calls as msp files
     provenance.smk       resolved config snapshot
   scripts/
     fetch_resources.sh   downloads the panel, genetic maps, array manifest and LD regions
@@ -135,10 +139,12 @@ workflow/
     plot_local_ancestry.py
                          karyograms and genome-wide ancestry from local calls
     gnomix_config.py     sets a gnomix config's seed, cores and cleanup per job
+    flare_msp.py         FLARE's per-marker calls as msp segments
     vendor/extract_tracts.py
                          Tractor's script, unchanged; see THIRD_PARTY_LICENSES
   envs/pixi.toml         rule envs (pixi workspace)
   envs/gnomix/           gnomix package recipe at a pinned commit, with a bug fix
+  envs/flare/            FLARE package recipe that builds its jar at a pinned commit
 .tests/integration/      toy inputs for the end-to-end test; make_test_data.sh records how they were built
 profiles/
   local/config.yaml      local execution

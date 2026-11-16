@@ -1,0 +1,6 @@
+# Overrides for `pixi run test-flare`: FLARE local ancestry.
+run_id: flare
+chromosomes: [chr20]
+phase_rare: {enabled: false}
+local_ancestry:
+  tool: flare

@@ -51,6 +51,8 @@ set-threads:
   select_reference: 1
   local_ancestry_rfmix2: 16
   local_ancestry_gnomix: 16
+  local_ancestry_flare: 16
+  flare_msp: 1
   plot_local_ancestry: 1
   extract_tracts: 1
 
@@ -134,6 +136,14 @@ set-resources:              # about twice each rule's peak in the 936-sample run
     mem_mb: 64000 * attempt
     runtime: 720m
     slurm_partition: 12hours,5days
+  # No benchmark yet: sized like RFMix2, to tune after the first run.
+  local_ancestry_flare:
+    mem_mb: 16000 * attempt
+    runtime: 120m
+    slurm_partition: 4hours,12hours,5days
+  flare_msp:
+    mem_mb: 8000 * attempt
+    runtime: 30m
   plot_local_ancestry:
     mem_mb: 20000 * attempt
     runtime: 60m

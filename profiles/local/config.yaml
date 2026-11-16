@@ -43,6 +43,8 @@ set-threads:
   select_reference: 1
   local_ancestry_rfmix2: 8
   local_ancestry_gnomix: 8
+  local_ancestry_flare: 2
+  flare_msp: 1
   plot_local_ancestry: 1
   extract_tracts: 1
 

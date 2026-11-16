@@ -31,7 +31,7 @@ digraph workflow {
     label = "Ancestry"
     reference      [class = step, label = "Reference\nreference_candidates, match_array_sites"]
     admixture      [class = step, label = "Admixture\nADMIXTURE, select_reference"]
-    local_ancestry [class = step, label = "Local ancestry\nRFMix2 or gnomix"]
+    local_ancestry [class = step, label = "Local ancestry\nRFMix2, gnomix or FLARE"]
     tracts         [class = step, label = "Extract tracts\nTractor"]
     plot           [class = step, label = "Plot local ancestry\npoikilos, pqplot"]
     matched        [class = data, label = "ancestry/*.bcf"]

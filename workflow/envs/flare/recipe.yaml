@@ -1,0 +1,37 @@
+# flare has no releases or package, so this builds its jar at a pinned commit, as its README does.
+context:
+  version: 0.0.0.20251104
+  commit: d6a6c8fd4479ebdb68529824acd11d2b6bbac4a1
+
+package:
+  name: flare
+  version: ${{ version }}
+
+source:
+  url: https://github.com/browning-lab/flare/archive/${{ commit }}.tar.gz
+  sha256: 952b9a54e0ff0fc635c79b7af86c236061e3bab9df1dfa607e9ca5e68e6b8353
+
+build:
+  number: 0
+  noarch: generic
+  script:
+    - javac -cp src/ src/admix/AdmixMain.java
+    - jar cfe flare.jar admix/AdmixMain -C src/ ./
+    - mkdir -p $PREFIX/share/flare $PREFIX/bin
+    - cp flare.jar $PREFIX/share/flare/
+    - printf '#!/usr/bin/env bash\nexec java ${JAVA_OPTS:-} -jar "%s/share/flare/flare.jar" "$@"\n' "$PREFIX" > $PREFIX/bin/flare
+    - chmod 755 $PREFIX/bin/flare
+
+requirements:
+  build:
+    - openjdk >=11
+  run:
+    - openjdk >=11
+
+tests:
+  - script:
+      - test -f $PREFIX/share/flare/flare.jar
+
+about:
+  homepage: https://github.com/browning-lab/flare
+  license: Apache-2.0

@@ -10,14 +10,14 @@ The workflow reads one joint-called VCF, such as the output of
 filters each chromosome and phases it against the HGDP+1kGP panel with SHAPEIT5
 or Eagle2. On chrX, samples with one X are phased as haploid outside the PARs.
 The phased genotypes then feed KING relatedness, genetic PCs, ADMIXTURE global
-ancestry, local ancestry with RFMix2 or gnomix, and Tractor's per-ancestry
+ancestry, local ancestry with RFMix2, gnomix or FLARE, and Tractor's per-ancestry
 dosages. Trait QC and QTL mapping stay in per-omics pipelines. Profiles run it
 on one host or on SLURM.
 
 ![Stages of genotype-phasing-smk](docs/workflow-condensed-snakemake-LR.png)
 
 Each box merges related rules. `phase` runs SHAPEIT5 or Eagle2, and
-`local_ancestry` runs RFMix2 or gnomix. [docs/PIPELINE.md](docs/PIPELINE.md)
+`local_ancestry` runs RFMix2, gnomix or FLARE. [docs/PIPELINE.md](docs/PIPELINE.md)
 describes every rule and output, with the full rule graph.
 
 ## Getting Started

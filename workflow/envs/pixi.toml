@@ -40,10 +40,16 @@ python = "3.13.*"
 # scikit-allel accepts any dask. Unpinned, the solver picks 2023.3, whose dask.array imports numpy.compat, gone in numpy 2.
 dask-core = ">=2025"
 
+# flare has no package, so workflow/envs/flare/ builds one from a pinned commit.
+[feature.flare.dependencies]
+flare = { path = "flare" }
+bcftools = "*"
+
 [environments]
 shapeit5 = { features = ["shapeit5"], no-default-feature = true }
 eagle2 = { features = ["eagle2"], no-default-feature = true }
 gnomix = { features = ["gnomix"], no-default-feature = true }
+flare = { features = ["flare"], no-default-feature = true }
 
 [exclude-newer]
 ca-certificates = "0d"

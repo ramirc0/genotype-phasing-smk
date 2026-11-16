@@ -64,6 +64,9 @@ digraph workflow {
     which_tool            [class = decision, label = "Local ancestry tool?"]
     local_ancestry_rfmix2 [class = step, label = "Local ancestry rfmix2\nRFMix2"]
     local_ancestry_gnomix [class = step, label = "Local ancestry gnomix\ngnomix"]
+    local_ancestry_flare  [class = step, label = "Local ancestry flare\nFLARE"]
+    flare_msp             [class = step, label = "Flare msp\npolars"]
+    anc_vcf               [class = data, label = "local_ancestry/*.anc.vcf.gz"]
     extract_tracts        [class = step, label = "Extract tracts\nTractor"]
     plot_local_ancestry   [class = step, label = "Plot local ancestry\npoikilos"]
     candidates            [class = data, label = "candidates.tsv"]
@@ -159,6 +162,8 @@ digraph workflow {
   which_tool -> local_ancestry_gnomix [label = "gnomix"]
   local_ancestry_rfmix2 -> msp
   local_ancestry_gnomix -> msp
+  which_tool -> local_ancestry_flare [label = "FLARE"]
+  local_ancestry_flare -> anc_vcf -> flare_msp -> msp
   phased -> extract_tracts
   msp -> extract_tracts
   extract_tracts -> tracts

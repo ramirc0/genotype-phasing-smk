@@ -19,6 +19,7 @@ snakemake-executor-plugin-slurm-jobstep = "==0.6.1"
 [tasks]
 test = "snakemake --snakefile workflow/Snakefile --directory .tests/integration --profile profiles/local --cores 2 --forceall"
 test-options = "snakemake --snakefile workflow/Snakefile --directory .tests/integration --profile profiles/local --cores 2 --forceall --configfile .tests/integration/config/config.yaml .tests/integration/config/options.yaml"
+test-flare = "snakemake --snakefile workflow/Snakefile --directory .tests/integration --profile profiles/local --cores 2 --forceall --configfile .tests/integration/config/config.yaml .tests/integration/config/flare.yaml"
 
 [tasks.fetch-resources]
 args = ["dest"]

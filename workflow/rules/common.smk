@@ -19,6 +19,7 @@ SOFTWARE_ENV = pixi(workspace="../envs", env=config["pixi_env"], locked=True)
 SHAPEIT5_ENV = pixi(workspace="../envs", env="shapeit5", locked=True)
 EAGLE2_ENV = pixi(workspace="../envs", env="eagle2", locked=True)
 GNOMIX_ENV = pixi(workspace="../envs", env="gnomix", locked=True)
+FLARE_ENV = pixi(workspace="../envs", env="flare", locked=True)
 
 CALLSET = config["callset"]
 FASTA = config["fasta"]
@@ -68,7 +69,7 @@ if "chrX" in CHROMOSOMES and config["phaser"] != "shapeit5":
     raise WorkflowError("chrX needs phaser: shapeit5.")
 
 LAI = config["local_ancestry"]
-LAI_TOOLS = ("rfmix2", "gnomix")
+LAI_TOOLS = ("rfmix2", "gnomix", "flare")
 if LAI["tool"] not in LAI_TOOLS:
     raise WorkflowError(f"local_ancestry.tool MUST be one of {', '.join(LAI_TOOLS)}.")
 if list(LAI["min_purity"]) != list(LAI["populations"]):

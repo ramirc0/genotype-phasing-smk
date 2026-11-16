@@ -117,12 +117,18 @@ phase is less accurate than common-site phase.
    component exceeds `local_ancestry.min_purity`. The cohort's shares go to
    `global_ancestry.tsv`.
 10. The tool set by `local_ancestry.tool` calls local ancestry per chromosome.
-    Both tools read the same files and write msp files in RFMix2's layout, which
+    All three read the same files and write msp files in RFMix2's layout, which
     Tractor reads.
     - `local_ancestry_rfmix2` (default) runs RFMix2.
     - `local_ancestry_gnomix` runs gnomix. It trains a model on admixed samples
       that it simulates from the reference, then deletes them. Phase correction
       stays off, so its haplotypes stay those of the phased VCF.
+    - `local_ancestry_flare` runs [FLARE](https://github.com/browning-lab/flare)
+      in array mode, which fits the generations since admixture itself, so
+      `rfmix_generations` does not apply. `flare_msp` merges runs of markers
+      where no haplotype changes ancestry into msp segments. Each segment runs
+      to the next one's first marker, as RFMix2's windows do, so Tractor places
+      every site.
 11. `extract_tracts` runs Tractor's `extract_tracts.py` on each phased VCF and
     its msp file. It writes, per ancestry, the ALT dosage and the haplotype
     count of each sample at every phased site, which Tractor's regression reads.
@@ -163,7 +169,9 @@ Everything goes under `results/<run_id>/`. Logs and benchmarks go to
 | `admixture/merged.*` | ADMIXTURE input and its `.Q` and `.P` files |
 | `lai_sample_map.tsv` | Local ancestry reference: sample, ancestry |
 | `global_ancestry.tsv` | ADMIXTURE share per ancestry of each unrelated cohort sample |
-| `local_ancestry/<chrom>.{msp,fb}.tsv` | Local ancestry calls in RFMix2's layout |
+| `local_ancestry/<chrom>.msp.tsv` | Local ancestry calls in RFMix2's layout |
+| `local_ancestry/<chrom>.fb.tsv` | Ancestry probabilities per marker (RFMix2 and gnomix) |
+| `local_ancestry/<chrom>.anc.vcf.gz` | FLARE's calls and probabilities per marker (FLARE) |
 | `local_ancestry_global.tsv` | Genome-wide share per ancestry of each sample, from its tracts |
 | `tracts/<chrom>.anc<i>.{dosage,hapcount}.txt.gz` | Tractor input per ancestry `i`, numbered as in the msp header |
 | `plots/karyograms.{svg,png}` | Local ancestry of 10 random samples |

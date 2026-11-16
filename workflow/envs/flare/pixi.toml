@@ -1,0 +1,6 @@
+[package]
+name = "flare"
+version = "0.0.0.20251104"
+
+[package.build]
+backend = { name = "pixi-build-rattler-build", version = "*" }
