@@ -26,6 +26,9 @@ digraph workflow {
     ligate_chrx       [class = step, label = "Ligate chrx\nSHAPEIT5_ligate"]
     chunk_spans       [class = data, label = "chrX_nonpar/chunks.txt"]
     chunk_bcf         [class = data, label = "chrX_nonpar/*.bcf"]
+    rare_q            [class = decision, label = "Rare enabled?"]
+    phase_rare        [class = step, label = "Phase rare\nSHAPEIT5 phase_rare"]
+    rare_regions      [class = data, label = "phase/*.bcf with rare sites"]
     concat_chrx       [class = step, label = "Concat chrX\nbcftools"]
     finalize_phased   [class = step, label = "Finalize phased\nbcftools"]
     export_pgen       [class = step, label = "Export pgen\nplink2"]
@@ -104,6 +107,13 @@ digraph workflow {
   maps -> which_phaser
   phase_shapeit5 -> phased_regions
   phase_eagle2 -> phased_regions
+  phased_regions -> rare_q
+  rare_q -> phase_rare [label = "yes"]
+  prepared -> phase_rare
+  haploids -> phase_rare
+  phase_rare -> rare_regions
+  rare_regions -> concat_chrx
+  rare_regions -> finalize_phased
   phased_regions -> concat_chrx
   concat_chrx -> phased_chrx
   phased_chrx -> finalize_phased

@@ -2,6 +2,7 @@
 run_id: options
 chromosomes: [chr20]    # chrX needs SHAPEIT5
 phaser: eagle2
+phase_rare: {enabled: false}   # phase_rare needs SHAPEIT5
 local_ancestry:
   tool: gnomix
   gnomix_config: config/gnomix.yaml

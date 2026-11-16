@@ -1,6 +1,13 @@
 include: "rules/common.smk"
 include: "rules/prepare.smk"
 include: f"rules/{config['phaser']}.smk"
+
+
+if RARE["enabled"]:
+
+    include: "rules/rare.smk"
+
+
 include: "rules/phase.smk"
 include: "rules/relatedness.smk"
 include: "rules/ancestry.smk"

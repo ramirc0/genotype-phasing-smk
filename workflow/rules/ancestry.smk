@@ -267,6 +267,7 @@ rule extract_tracts:
     params:
         outdir=f"{OUTDIR}/tracts",
         ancestries=len(LAI["populations"]),
+        common=f"MAF>={FILTERS['min_maf']}" if RARE["enabled"] else "",
     log:
         f"{LOGDIR}/extract_tracts/{{chrom}}.txt",
     benchmark:
@@ -276,9 +277,19 @@ rule extract_tracts:
     shell:
         r"""
         exec &> >(tee {log:q})
+        WORKDIR=$(mktemp -d)
+        trap 'rm -rf "$WORKDIR"' EXIT
+
+        # Tractor names its outputs after the VCF, so a filtered copy keeps the name.
+        VCF={input.vcf:q}
+        COMMON={params.common:q}
+        if [[ -n "$COMMON" ]]; then
+            VCF="$WORKDIR/{wildcards.chrom}.vcf.gz"
+            bcftools view --include "$COMMON" -Oz --output "$VCF" {input.vcf:q}
+        fi
 
         python {workflow.basedir:q}/scripts/vendor/extract_tracts.py \
-            --vcf {input.vcf:q} \
+            --vcf "$VCF" \
             --msp {input.msp:q} \
             --num-ancs {params.ancestries:q} \
             --output-dir {params.outdir:q} \

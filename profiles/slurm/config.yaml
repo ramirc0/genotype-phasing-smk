@@ -33,6 +33,7 @@ set-threads:
   phase_shapeit5: 16
   phase_chrx_chunk: 16
   ligate_chrx: 4
+  phase_rare: 8
   phase_eagle2: 16
   infer_x_ploidy: 2
   concat_chrx: 2
@@ -72,6 +73,11 @@ set-resources:              # about twice each rule's peak in the 936-sample run
   ligate_chrx:
     mem_mb: 2000 * attempt
     runtime: 30m
+  # No benchmark yet: sized from the scaffold jobs, to tune after the first run.
+  phase_rare:
+    mem_mb: 32000 * attempt
+    runtime: 600m
+    slurm_partition: 12hours,5days
   phase_eagle2:
     mem_mb: 64000 * attempt
     runtime: 720m

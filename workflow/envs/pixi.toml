@@ -27,6 +27,7 @@ MPLBACKEND = "Agg"
 # SHAPEIT5 and Eagle2 pin htslib below 1.25, so they stay out of default.
 [feature.shapeit5.dependencies]
 shapeit5 = "*"
+bcftools = "*"
 
 [feature.eagle2.dependencies]
 eagle2 = "*"

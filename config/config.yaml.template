@@ -11,6 +11,10 @@ chromosomes: [chr1, chr2, chr3, chr4, chr5, chr6, chr7, chr8, chr9, chr10, chr11
                          # add chrX to phase it too; it needs phaser: shapeit5
 
 phaser: shapeit5         # or eagle2
+phase_rare:              # phase sites below filters.min_maf with SHAPEIT5 phase_rare
+  enabled: false
+  chunk_sites: 200000    # prepared sites per phase_rare chunk
+  buffer_bp: 1000000     # scaffold flank on each side of a chunk
 chrx_chunks:             # SHAPEIT5 phases chrX non-PAR in chunks of equal site counts, then ligates them
   count: 8
   overlap_sites: 2000

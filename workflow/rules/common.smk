@@ -56,6 +56,13 @@ if CHRX_CHUNKS["count"] < 1 or CHRX_CHUNKS["overlap_sites"] < 1:
 PHASERS = ("shapeit5", "eagle2")
 if config["phaser"] not in PHASERS:
     raise WorkflowError(f"phaser MUST be one of {', '.join(PHASERS)}.")
+# phase_rare phases sites below filters.min_maf on a SHAPEIT5 scaffold of the sites above
+# it. The phaser then writes the scaffold to scaffold/, and phase_rare writes phase/.
+RARE = config["phase_rare"]
+if RARE["enabled"] and config["phaser"] != "shapeit5":
+    raise WorkflowError("phase_rare needs phaser: shapeit5.")
+SCAFFOLD_DIR = f"{OUTDIR}/scaffold" if RARE["enabled"] else f"{OUTDIR}/phase"
+
 # Eagle2 takes haploid calls, but RFMix2, Tractor and the SHAPEIT5 panel code them as diploid.
 if "chrX" in CHROMOSOMES and config["phaser"] != "shapeit5":
     raise WorkflowError("chrX needs phaser: shapeit5.")

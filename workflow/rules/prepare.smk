@@ -17,7 +17,8 @@ rule prepare_genotypes:
         region=lambda w: REGION_SPAN[w.region],
         depth_filter=lambda w: f"FMT/DP<{FILTERS['min_dp']}",
         site_filter=lambda w: (
-            f"MAF>={FILTERS['min_maf']} && F_MISSING<={FILTERS['max_missing']}"
+            ("AC>0" if RARE["enabled"] else f"MAF>={FILTERS['min_maf']}")
+            + f" && F_MISSING<={FILTERS['max_missing']}"
         ),
     log:
         f"{LOGDIR}/prepare_genotypes/{{region}}.txt",

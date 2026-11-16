@@ -77,6 +77,9 @@ belongs to.
 | `fasta` | Reference FASTA of the callset, with its `.fai` (and `.gzi` if bgzipped). |
 | `exclude_samples` | Headerless TSV of sample ID and reason. Lines starting with `#` are ignored. Every ID MUST be in the callset. |
 | `chromosomes` | Chromosomes to phase, `chr1` to `chr22`, optionally with `chrX`. Relatedness, PCs and ancestry use the autosomes. |
+| `phase_rare.enabled` | Phase sites below `filters.min_maf` with SHAPEIT5 `phase_rare`, on a scaffold of the sites above it. Default `false`. Needs `phaser: shapeit5`. |
+| `phase_rare.chunk_sites` | Prepared sites per `phase_rare` chunk. Default `200000`. |
+| `phase_rare.buffer_bp` | Scaffold flank on each side of a chunk, in bp. Default `1000000`. |
 | `chrx_chunks.count` | Chunks of the chrX non-PAR, of equal site counts, that SHAPEIT5 phases apart and ligates. Default `8`. |
 | `chrx_chunks.overlap_sites` | Sites each chunk shares with its neighbors, for ligation. Default `2000`. |
 | `phaser` | `shapeit5` (default) or `eagle2`. The Snakefile includes only that phaser's rule file. chrX needs `shapeit5`. |
@@ -97,7 +100,7 @@ belongs to.
 | `local_ancestry.rfmix_generations` | RFMix2 `--generations`. Default `8`. Raise or lower it when tracts look too fragmented or too uniform. |
 | `seed` | Seed for ADMIXTURE, RFMix2 and the karyogram samples. |
 | `filters.min_dp` | Genotypes with lower depth go missing. Default `10`. |
-| `filters.min_maf` | Sites with lower minor allele frequency are dropped. Default `0.01`. |
+| `filters.min_maf` | Sites with lower minor allele frequency are dropped, or phased by `phase_rare` when it is on. Default `0.01`. |
 | `filters.max_missing` | Sites with a larger missing genotype fraction are dropped. Default `0.05`. |
 
 ## Layout
@@ -116,6 +119,7 @@ workflow/
     prepare.smk          per-chromosome genotype filters
     shapeit5.smk         phasing with SHAPEIT5
     eagle2.smk           phasing with Eagle2
+    rare.smk             optional rare-variant phasing with SHAPEIT5 phase_rare
     phase.smk            final phased VCFs, pgen copies
     relatedness.smk      array-site genotypes, kinship, unrelated set, genetic PCs
     ancestry.smk         reference candidates, ADMIXTURE, reference selection, plots

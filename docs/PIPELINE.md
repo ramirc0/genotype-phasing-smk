@@ -16,8 +16,9 @@ phasing. `unrelated.txt` filters samples at mapping.
 1. `prepare_genotypes` keeps PASS records and drops the samples in
    `exclude_samples`. It splits multiallelics with the other ALT set missing, so
    no sample gains a REF allele it lacks, and drops `*` alleles. Genotypes with
-   depth below `min_dp` go missing. Sites below `min_maf` or above
-   `max_missing` are dropped. Only GT is kept.
+   depth below `min_dp` go missing. Sites above `max_missing` are dropped, and
+   so are sites below `min_maf` unless `phase_rare.enabled` is on. Only GT is
+   kept.
 2. The phaser set by `phaser` phases against the reference panel and imputes
    missing genotypes. The panel lacks some common cohort sites, which its own
    QC removed though other callsets keep them.
@@ -59,6 +60,28 @@ PAR bounds, because samples with one X are haploid only between them:
 
 chrX needs `phaser: shapeit5`. Eagle2 takes haploid calls, but RFMix2, Tractor
 and the SHAPEIT5 panel code them as diploid.
+
+## Rare variants
+
+`phase_rare.enabled` (default off) also phases the sites below `min_maf`, down to
+singletons:
+
+- `prepare_genotypes` keeps every site with an ALT allele left after the depth
+  filter, instead of those at or above `min_maf`.
+- The phaser runs as above with `--filter-maf min_maf`, and writes this
+  common-site scaffold to `scaffold/` instead of `phase/`.
+- `phase_rare` runs SHAPEIT5 `phase_rare` per region, in chunks of
+  `phase_rare.chunk_sites` sites, each with `phase_rare.buffer_bp` of scaffold on
+  both sides. It phases the rest on the scaffold, from cohort haplotypes only,
+  and writes `phase/`. `--score-singletons` stores a confidence between 0.5 and
+  1 in `PP` for each singleton's phase. Haploid samples pass to `--haploids` on
+  the chrX non-PAR.
+- `extract_tracts` keeps the sites at or above `min_maf`, so the Tractor files
+  stay the same size.
+
+It needs `phaser: shapeit5`. The SHAPEIT5 docs aim `phase_rare` at cohorts above
+2,000 samples. Smaller cohorts have fewer carriers sharing each rare haplotype,
+so rare-site phase is less accurate than common-site phase.
 
 ## Across the genome
 
@@ -117,6 +140,7 @@ Everything goes under `results/<run_id>/`. Logs and benchmarks go to
 | Path | Contents |
 |---|---|
 | `prepare/<chrom>.bcf` | Filtered genotypes, the phaser's input |
+| `scaffold/<region>.bcf` | Common-site phase, the `phase_rare` scaffold (`phase_rare.enabled` only) |
 | `phase/<chrom>.bcf` | Phaser output; with chrX, also one file per chrX region, and the non-PAR chunks and their spans in `phase/chrX_nonpar/` |
 | `phased/<chrom>.vcf.gz` | Phased genotypes with recomputed tags and `CHROM:POS:REF:ALT` IDs |
 | `phased/genome.vcf.gz` | Every chromosome's phased VCF joined in order, chr1 to chr22 then chrX, with a `.tbi` |

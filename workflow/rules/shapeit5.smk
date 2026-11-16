@@ -5,7 +5,9 @@
 # and leaves out sites the panel lacks. Those are real variants the panel's QC removed,
 # so a second pass phases every site from the cohort alone, holding the first pass's
 # phase fixed as a scaffold. The SHAPEIT5 docs skip phase_rare below 2,000 samples.
-# Both rules below run it on the span in $REGION.
+# Both rules below run it on the span in $REGION. With phase_rare on, it phases only
+# sites above filters.min_maf, and phase_rare phases the rest on this scaffold.
+FILTER_MAF = ["--filter-maf", FILTERS["min_maf"]] if RARE["enabled"] else []
 TWO_PASS = r"""
         WORKDIR=$(mktemp -d)
         trap 'rm -rf "$WORKDIR"' EXIT
@@ -16,6 +18,7 @@ TWO_PASS = r"""
             --map {input.map:q} \
             --region "$REGION" \
             {params.haploids:q} \
+            {params.filter_maf:q} \
             --thread {threads} \
             --output "$WORKDIR/scaffold.bcf"
         SHAPEIT5_phase_common \
@@ -24,6 +27,7 @@ TWO_PASS = r"""
             --map {input.map:q} \
             --region "$REGION" \
             {params.haploids:q} \
+            {params.filter_maf:q} \
             --thread {threads} \
             --output {output:q}
 
@@ -39,12 +43,13 @@ rule phase_shapeit5:
         panel_index=f"{PANEL}.csi",
         map=config["genetic_maps"]["shapeit5"],
     output:
-        f"{OUTDIR}/phase/{{region}}.bcf",
+        f"{SCAFFOLD_DIR}/{{region}}.bcf",
     wildcard_constraints:
         region="|".join(re.escape(r) for r in REGION_SPAN if r != "chrX_nonpar"),
     params:
         region=lambda w: REGION_SPAN[w.region],
         haploids=[],
+        filter_maf=FILTER_MAF,
     log:
         f"{LOGDIR}/phase_shapeit5/{{region}}.txt",
     benchmark:
@@ -66,7 +71,7 @@ rule chrx_chunks:
     input:
         f"{OUTDIR}/prepare/chrX_nonpar.bcf",
     output:
-        f"{OUTDIR}/phase/chrX_nonpar/chunks.txt",
+        f"{SCAFFOLD_DIR}/chrX_nonpar/chunks.txt",
     params:
         chunks=CHRX_CHUNKS["count"],
         overlap=CHRX_CHUNKS["overlap_sites"],
@@ -100,7 +105,7 @@ rule chrx_chunks:
 # SHAPEIT5 sets hets of samples with one X missing and imputes them as homozygous.
 rule phase_chrx_chunk:
     input:
-        chunks=f"{OUTDIR}/phase/chrX_nonpar/chunks.txt",
+        chunks=f"{SCAFFOLD_DIR}/chrX_nonpar/chunks.txt",
         bcf=f"{OUTDIR}/prepare/chrX_nonpar.bcf",
         csi=f"{OUTDIR}/prepare/chrX_nonpar.bcf.csi",
         panel=PANEL.format(region="chrX_nonpar"),
@@ -108,12 +113,13 @@ rule phase_chrx_chunk:
         map=config["genetic_maps"]["shapeit5"].format(region="chrX_nonpar"),
         haploids=f"{OUTDIR}/haploid_samples.txt",
     output:
-        f"{OUTDIR}/phase/chrX_nonpar/{{chunk}}.bcf",
+        f"{SCAFFOLD_DIR}/chrX_nonpar/{{chunk}}.bcf",
     wildcard_constraints:
         chunk=r"\d+",
     params:
         line=lambda w: int(w.chunk) + 1,
         haploids=lambda w, input: ["--haploids", input.haploids],
+        filter_maf=FILTER_MAF,
     log:
         f"{LOGDIR}/phase_chrx_chunk/{{chunk}}.txt",
     benchmark:
@@ -130,11 +136,11 @@ rule phase_chrx_chunk:
 rule ligate_chrx:
     input:
         expand(
-            f"{OUTDIR}/phase/chrX_nonpar/{{chunk}}.bcf",
+            f"{SCAFFOLD_DIR}/chrX_nonpar/{{chunk}}.bcf",
             chunk=range(CHRX_CHUNKS["count"]),
         ),
     output:
-        f"{OUTDIR}/phase/chrX_nonpar.bcf",
+        f"{SCAFFOLD_DIR}/chrX_nonpar.bcf",
     log:
         f"{LOGDIR}/ligate_chrx.txt",
     benchmark:
