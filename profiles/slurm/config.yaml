@@ -52,94 +52,85 @@ set-threads:
   plot_local_ancestry: 1
   extract_tracts: 1
 
-set-resources:              # tune from benchmarks/ TSVs after a real run
+set-resources:              # about twice each rule's peak in the 936-sample run's benchmarks/
   prepare_genotypes:
     mem_mb: 4000 * attempt
-    runtime: 240m
-    slurm_partition: 4hours,12hours,5days
-  phase_shapeit5:
-    mem_mb: 32000 * attempt
-    runtime: 720m
-    slurm_partition: 12hours,5days
-  chrx_chunks:
-    mem_mb: 4000 * attempt
-    runtime: 30m
-  # A 27 Mb chunk with 69k sites peaked at 34 GB on 16 threads.
-  phase_chrx_chunk:
-    mem_mb: 48000 * attempt
-    runtime: 240m
-    slurm_partition: 4hours,12hours,5days
-  ligate_chrx:
-    mem_mb: 8000 * attempt
     runtime: 60m
     slurm_partition: 4hours,12hours,5days
+  phase_shapeit5:
+    mem_mb: 48000 * attempt
+    runtime: 600m
+    slurm_partition: 12hours,5days
+  chrx_chunks:
+    mem_mb: 2000 * attempt
+    runtime: 30m
+  phase_chrx_chunk:
+    mem_mb: 24000 * attempt
+    runtime: 60m
+    slurm_partition: 4hours,12hours,5days
+  ligate_chrx:
+    mem_mb: 2000 * attempt
+    runtime: 30m
   phase_eagle2:
     mem_mb: 64000 * attempt
     runtime: 720m
     slurm_partition: 12hours,5days
   infer_x_ploidy:
-    mem_mb: 8000 * attempt
+    mem_mb: 2000 * attempt
     runtime: 30m
   concat_chrx:
-    mem_mb: 4000 * attempt
+    mem_mb: 2000 * attempt
     runtime: 30m
   finalize_phased:
-    mem_mb: 4000 * attempt
-    runtime: 240m
-    slurm_partition: 4hours,12hours,5days
+    mem_mb: 2000 * attempt
+    runtime: 30m
   export_pgen:
-    mem_mb: 16000 * attempt
-    runtime: 240m
-    slurm_partition: 4hours,12hours,5days
-  array_genotypes:
-    mem_mb: 4000 * attempt
-    runtime: 240m
-    slurm_partition: 4hours,12hours,5days
-  cohort_array_pgen:
-    mem_mb: 16000 * attempt
-    runtime: 240m
-    slurm_partition: 4hours,12hours,5days
-  relatedness:
-    mem_mb: 16000 * attempt
-    runtime: 240m
-    slurm_partition: 4hours,12hours,5days
-  genetic_pcs:
-    mem_mb: 16000 * attempt
-    runtime: 240m
-    slurm_partition: 4hours,12hours,5days
-  reference_candidates:
     mem_mb: 4000 * attempt
     runtime: 30m
-  match_array_sites:
+  array_genotypes:
+    mem_mb: 2000 * attempt
+    runtime: 30m
+  cohort_array_pgen:
     mem_mb: 4000 * attempt
-    runtime: 240m
-    slurm_partition: 4hours,12hours,5days
+    runtime: 30m
+  relatedness:
+    mem_mb: 4000 * attempt
+    runtime: 30m
+  genetic_pcs:
+    mem_mb: 4000 * attempt
+    runtime: 30m
+  reference_candidates:
+    mem_mb: 2000 * attempt
+    runtime: 30m
+  match_array_sites:
+    mem_mb: 2000 * attempt
+    runtime: 30m
   make_lai_maps:
     mem_mb: 2000 * attempt
     runtime: 30m
   admixture:
-    mem_mb: 32000 * attempt
-    runtime: 720m
-    slurm_partition: 12hours,5days
-  select_reference:
     mem_mb: 4000 * attempt
+    runtime: 60m
+    slurm_partition: 4hours,12hours,5days
+  select_reference:
+    mem_mb: 2000 * attempt
     runtime: 30m
   local_ancestry_rfmix2:
-    mem_mb: 64000 * attempt
-    runtime: 720m
-    slurm_partition: 12hours,5days
+    mem_mb: 8000 * attempt
+    runtime: 60m
+    slurm_partition: 4hours,12hours,5days
   local_ancestry_gnomix:
     mem_mb: 64000 * attempt
     runtime: 720m
     slurm_partition: 12hours,5days
   plot_local_ancestry:
-    mem_mb: 32000 * attempt
-    runtime: 240m
+    mem_mb: 20000 * attempt
+    runtime: 60m
     slurm_partition: 4hours,12hours,5days
   extract_tracts:
-    mem_mb: 4000 * attempt
-    runtime: 720m
-    slurm_partition: 12hours,5days
+    mem_mb: 2000 * attempt
+    runtime: 180m
+    slurm_partition: 4hours,12hours,5days
 
 rerun-incomplete: true
 keep-going: true
