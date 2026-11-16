@@ -21,5 +21,9 @@ rule all:
         f"{OUTDIR}/king.kin0",
         f"{OUTDIR}/pcs.tsv",
         f"{OUTDIR}/local_ancestry_global.tsv",
+        expand(
+            f"{OUTDIR}/plots/{{plot}}.png",
+            plot=["karyograms", "ideograms", "global_ancestry"],
+        ),
         expand(f"{OUTDIR}/tracts/{{chrom}}.anc0.dosage.txt.gz", chrom=PHASED_AUTOSOMES),
         f"{OUTDIR}/config.snapshot.json",
