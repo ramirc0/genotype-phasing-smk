@@ -21,6 +21,11 @@ digraph workflow {
     which_phaser      [class = decision, label = "Phaser?"]
     phase_shapeit5    [class = step, label = "Phase shapeit5\nSHAPEIT5"]
     phase_eagle2      [class = step, label = "Phase eagle2\nEagle2"]
+    chrx_chunks       [class = step, label = "Chrx chunks\nbcftools"]
+    phase_chrx_chunk  [class = step, label = "Phase chrx chunk\nSHAPEIT5"]
+    ligate_chrx       [class = step, label = "Ligate chrx\nSHAPEIT5_ligate"]
+    chunk_spans       [class = data, label = "chrX_nonpar/chunks.txt"]
+    chunk_bcf         [class = data, label = "chrX_nonpar/*.bcf"]
     concat_chrx       [class = step, label = "Concat chrX\nbcftools"]
     finalize_phased   [class = step, label = "Finalize phased\nbcftools"]
     export_pgen       [class = step, label = "Export pgen\nplink2"]
@@ -86,7 +91,13 @@ digraph workflow {
   prepared -> which_phaser
   which_phaser -> phase_shapeit5 [label = "SHAPEIT5"]
   which_phaser -> phase_eagle2 [label = "Eagle2"]
-  haploids -> phase_shapeit5
+  prepared -> chrx_chunks -> chunk_spans
+  chunk_spans -> phase_chrx_chunk
+  prepared -> phase_chrx_chunk
+  haploids -> phase_chrx_chunk
+  phase_chrx_chunk -> chunk_bcf
+  chunk_bcf -> ligate_chrx
+  ligate_chrx -> phased_regions
   panel -> which_phaser
   maps -> which_phaser
   phase_shapeit5 -> phased_regions

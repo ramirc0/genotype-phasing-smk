@@ -77,6 +77,8 @@ belongs to.
 | `fasta` | Reference FASTA of the callset, with its `.fai` (and `.gzi` if bgzipped). |
 | `exclude_samples` | Headerless TSV of sample ID and reason. Lines starting with `#` are ignored. Every ID MUST be in the callset. |
 | `chromosomes` | Chromosomes to phase, `chr1` to `chr22`, optionally with `chrX`. Relatedness, PCs and ancestry use the autosomes. |
+| `chrx_chunks.count` | Chunks of the chrX non-PAR, of equal site counts, that SHAPEIT5 phases apart and ligates. Default `8`. |
+| `chrx_chunks.overlap_sites` | Sites each chunk shares with its neighbors, for ligation. Default `2000`. |
 | `phaser` | `shapeit5` (default) or `eagle2`. The Snakefile includes only that phaser's rule file. chrX needs `shapeit5`. |
 | `panel` | Phased reference panel BCF per region, with `{region}` in the path and a `.csi` beside it. |
 | `genetic_maps.shapeit5` | SHAPEIT5 genetic map per region, with `{region}` in the path. |

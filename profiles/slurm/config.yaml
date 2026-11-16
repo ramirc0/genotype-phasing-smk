@@ -31,6 +31,8 @@ default-resources:
 set-threads:
   prepare_genotypes: 4
   phase_shapeit5: 16
+  phase_chrx_chunk: 16
+  ligate_chrx: 4
   phase_eagle2: 16
   infer_x_ploidy: 2
   concat_chrx: 2
@@ -56,10 +58,21 @@ set-resources:              # tune from benchmarks/ TSVs after a real run
     runtime: 240m
     slurm_partition: 4hours,12hours,5days
   phase_shapeit5:
-    # chrX non-PAR has a heavy tail of conditioning states: 34 GB on its first 27 Mb.
-    mem_mb: (128000 if wildcards.region == "chrX_nonpar" else 32000) * attempt
+    mem_mb: 32000 * attempt
     runtime: 720m
     slurm_partition: 12hours,5days
+  chrx_chunks:
+    mem_mb: 4000 * attempt
+    runtime: 30m
+  # A 27 Mb chunk with 69k sites peaked at 34 GB on 16 threads.
+  phase_chrx_chunk:
+    mem_mb: 48000 * attempt
+    runtime: 240m
+    slurm_partition: 4hours,12hours,5days
+  ligate_chrx:
+    mem_mb: 8000 * attempt
+    runtime: 60m
+    slurm_partition: 4hours,12hours,5days
   phase_eagle2:
     mem_mb: 64000 * attempt
     runtime: 720m

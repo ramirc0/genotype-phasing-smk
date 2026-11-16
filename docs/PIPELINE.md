@@ -45,8 +45,13 @@ PAR bounds, because samples with one X are haploid only between them:
   on the prepared non-PAR genotypes. The F-statistic counts X copies, which is
   what phasing needs: XY, XYY and X0 samples come out haploid, and XX, XXY and
   XXX samples diploid. Samples plink2 cannot call stay diploid.
-- `phase_shapeit5` passes the haploid samples to `--haploids` outside the PARs.
-  SHAPEIT5 sets their hets missing and imputes them as homozygous.
+- The non-PAR runs in `chrx_chunks.count` chunks of equal site counts that
+  overlap by `chrx_chunks.overlap_sites`. With haploid samples, SHAPEIT5's
+  memory on the whole non-PAR grows faster than its span, past 243 GB for 936
+  samples, against 16 GB for chr1. `phase_chrx_chunk` runs both passes on each
+  chunk and passes the haploid samples to `--haploids`. SHAPEIT5 sets their
+  hets missing and imputes them as homozygous. `ligate_chrx` joins the chunks
+  with `SHAPEIT5_ligate`, which aligns phase on the overlaps.
 - `concat_chrx` joins the three regions before `finalize_phased`.
 - `export_pgen` splits the PARs with `--split-par hg38` and takes the imputed
   sex, so PAR calls stay diploid in every sample.
@@ -111,7 +116,7 @@ Everything goes under `results/<run_id>/`. Logs and benchmarks go to
 | Path | Contents |
 |---|---|
 | `prepare/<chrom>.bcf` | Filtered genotypes, the phaser's input |
-| `phase/<chrom>.bcf` | Phaser output; with chrX, also one file per chrX region |
+| `phase/<chrom>.bcf` | Phaser output; with chrX, also one file per chrX region, and the non-PAR chunks and their spans in `phase/chrX_nonpar/` |
 | `phased/<chrom>.vcf.gz` | Phased genotypes with recomputed tags and `CHROM:POS:REF:ALT` IDs |
 | `pgen/<chrom>.{pgen,pvar,psam}` | plink2 copy of the phased genotypes |
 | `x_ploidy.tsv` | plink2 sex imputation: X F-statistic and imputed sex per sample (chrX runs only) |

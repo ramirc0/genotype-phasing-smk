@@ -46,6 +46,10 @@ REGION_SPAN = {chrom: chrom for chrom in PHASED_AUTOSOMES}
 if "chrX" in CHROMOSOMES:
     REGION_SPAN |= CHRX_REGIONS
 
+CHRX_CHUNKS = config["chrx_chunks"]
+if CHRX_CHUNKS["count"] < 1 or CHRX_CHUNKS["overlap_sites"] < 1:
+    raise WorkflowError("chrx_chunks count and overlap_sites MUST be at least 1.")
+
 PHASERS = ("shapeit5", "eagle2")
 if config["phaser"] not in PHASERS:
     raise WorkflowError(f"phaser MUST be one of {', '.join(PHASERS)}.")

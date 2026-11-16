@@ -8,6 +8,7 @@ exclude_samples: config/exclude_samples.tsv
 chromosomes: [chr20, chrX]
 
 phaser: shapeit5
+chrx_chunks: {count: 2, overlap_sites: 4}   # the toy non-PAR has about 30 sites
 panel: resources/panel/{region}.bcf
 genetic_maps:
   shapeit5: resources/maps/{region}.b38.gmap.gz

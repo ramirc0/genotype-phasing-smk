@@ -11,6 +11,9 @@ chromosomes: [chr1, chr2, chr3, chr4, chr5, chr6, chr7, chr8, chr9, chr10, chr11
                          # add chrX to phase it too; it needs phaser: shapeit5
 
 phaser: shapeit5         # or eagle2
+chrx_chunks:             # SHAPEIT5 phases chrX non-PAR in chunks of equal site counts, then ligates them
+  count: 8
+  overlap_sites: 2000
 panel: /data/zusers/ramirezc/data/genotype-phasing-smk/resources/hgdp1kgp/{region}.bcf
 genetic_maps:
   shapeit5: /data/zusers/ramirezc/data/genotype-phasing-smk/resources/genetic-maps/shapeit5/{region}.b38.gmap.gz

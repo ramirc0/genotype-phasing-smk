@@ -23,6 +23,8 @@ default-resources:
 set-threads:
   prepare_genotypes: 4
   phase_shapeit5: 8
+  phase_chrx_chunk: 8
+  ligate_chrx: 2
   phase_eagle2: 8
   infer_x_ploidy: 2
   concat_chrx: 2
