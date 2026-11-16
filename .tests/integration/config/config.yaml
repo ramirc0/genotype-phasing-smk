@@ -27,6 +27,7 @@ local_ancestry:
     NAT: [PEL, MXL, Maya, Pima, Karitiana, Surui, Colombian]
   min_purity: {AFR: 0.5, EUR: 0.5, NAT: 0.5}   # the toy span has too few SNPs for the default purity
   rfmix_generations: 8
+  pdf_samples: all
 seed: 1
 
 filters:

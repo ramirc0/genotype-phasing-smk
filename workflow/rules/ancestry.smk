@@ -220,12 +220,12 @@ rule plot_local_ancestry:
         global_ancestry=f"{OUTDIR}/local_ancestry_global.tsv",
         karyograms=f"{OUTDIR}/plots/karyograms.svg",
         karyograms_png=f"{OUTDIR}/plots/karyograms.png",
-        ideograms=f"{OUTDIR}/plots/ideograms.svg",
-        ideograms_png=f"{OUTDIR}/plots/ideograms.png",
+        ideograms=f"{OUTDIR}/plots/ideograms.pdf",
         comparison=f"{OUTDIR}/plots/global_ancestry.svg",
         comparison_png=f"{OUTDIR}/plots/global_ancestry.png",
     params:
         seed=lambda w: config["seed"],
+        pdf_samples=lambda w: LAI["pdf_samples"],
     log:
         f"{LOGDIR}/plot_local_ancestry.txt",
     benchmark:
@@ -240,6 +240,7 @@ rule plot_local_ancestry:
             --msp {input.msp:q} \
             --admixture {input.admixture:q} \
             --seed {params.seed:q} \
+            --pdf-samples {params.pdf_samples:q} \
             --global-ancestry {output.global_ancestry:q} \
             --karyograms {output.karyograms:q} \
             --ideograms {output.ideograms:q} \

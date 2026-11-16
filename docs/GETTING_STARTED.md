@@ -90,6 +90,7 @@ belongs to.
 | `local_ancestry.gnomix_config` | Optional gnomix config to start from. Default: gnomix's `configs/config_array.yaml`. The rule sets its seed, cores and cleanup. |
 | `local_ancestry.populations` | Panel populations of each ancestry, which may enter the reference. The ancestry order sets the codes in the msp files. |
 | `local_ancestry.min_purity` | Smallest ADMIXTURE share of its own ancestry for a candidate to join the reference. Default `0.9` for AFR and EUR and `0.8` for NAT. |
+| `local_ancestry.pdf_samples` | Samples with a page in `plots/ideograms.pdf`: a count, picked at random with `seed`, or `all`. Default `all`. |
 | `local_ancestry.rfmix_generations` | RFMix2 `--generations`. Default `8`. Raise or lower it when tracts look too fragmented or too uniform. |
 | `seed` | Seed for ADMIXTURE, RFMix2 and the karyogram samples. |
 | `filters.min_dp` | Genotypes with lower depth go missing. Default `10`. |

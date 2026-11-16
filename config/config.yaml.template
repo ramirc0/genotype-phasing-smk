@@ -31,6 +31,7 @@ local_ancestry:
     NAT: [PEL, MXL, Maya, Pima, Karitiana, Surui, Colombian]
   min_purity: {AFR: 0.9, EUR: 0.9, NAT: 0.8}   # smallest ADMIXTURE share to join the reference
   rfmix_generations: 8   # RFMix2 -G, generations since admixture
+  pdf_samples: all       # samples with a page in plots/ideograms.pdf: a count, or all
 seed: 1
 
 filters:

@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 import poikilos as pk
 import polars as pl
 import pqplot as pqp
+from matplotlib.backends.backend_pdf import PdfPages
 
 
 def build_parser():
@@ -34,9 +35,36 @@ def build_parser():
         "--global-ancestry", required=True, help="Genome-wide ancestry TSV to write."
     )
     p.add_argument("--karyograms", required=True, help="Karyogram SVG to write.")
-    p.add_argument("--ideograms", required=True, help="Banded karyogram SVG to write.")
+    p.add_argument(
+        "--pdf-samples",
+        default="all",
+        help="Samples to give a PDF page: a count, or 'all'.",
+    )
+    p.add_argument(
+        "--ideograms", required=True, help="PDF to write, one karyogram per page."
+    )
     p.add_argument("--comparison", required=True, help="Comparison SVG to write.")
     return p
+
+
+def pick(samples, count, seed):
+    """Pick a sorted random subset of samples.
+
+    Parameters
+    ----------
+    samples : list of str
+        Samples to pick from.
+    count : int
+        Samples to pick, or all of them when there are fewer.
+    seed : int
+        Seed of the pick.
+
+    Returns
+    -------
+    list of str
+        The picked samples, sorted.
+    """
+    return sorted(random.Random(seed).sample(samples, min(count, len(samples))))
 
 
 def read_msp(path):
@@ -173,43 +201,44 @@ def plot_karyograms(tracts, samples, colors, path):
     pk.save_figure(fig, path)
 
 
-def plot_ideograms(tracts, samples, colors, path):
-    """Paint each sample's tracts on banded hg38 chromosomes, homologs side by side.
+def write_ideogram_pages(tracts, local, colors, path):
+    """Write a PDF with one page per sample: its tracts on banded hg38 chromosomes.
 
     Parameters
     ----------
     tracts : polars.DataFrame
-        Columns `chrom`, `start`, `end`, `haplotype` and `ancestry`.
-    samples : list of str
-        Samples to draw, one karyogram each.
+        Columns `chrom`, `start`, `end`, `haplotype` and `ancestry`. Every sample
+        in it gets a page, in sample order.
+    local : polars.DataFrame
+        Output of `genome_wide`, for the shares in each page title.
     colors : dict of str to str
         Color of each ancestry.
     path : str
-        SVG to write. The PNG goes beside it.
+        PDF to write.
     """
     hg38 = pqp.Genome.bundled("hg38")
     chroms = [c for c in hg38.autosomes if c in set(tracts.get_column("chrom"))]
-    tracts = tracts.with_columns(copy=pl.col("haplotype").str.slice(-1))
-    nrows = math.ceil(len(samples) / 2)
-    fig, axes = plt.subplots(
-        nrows, 2, figsize=(10, 2.4 * nrows), squeeze=False, layout="constrained"
-    )
-    for ax, sample in zip(axes.flat, samples):
-        kary = pqp.Karyogram(hg38, ax=ax, chroms=chroms, copies=2)
-        kary.paint(
-            tracts.filter(pl.col("haplotype").str.starts_with(f"{sample}.")),
-            start="start",
-            end="end",
-            color="ancestry",
-            palette=colors,
-            copy="copy",
-        )
-        ax.set_title(sample)
-        if ax is axes[0, -1]:
+    by_sample = tracts.with_columns(
+        sample=pl.col("haplotype").str.replace(r"\.[01]$", ""),
+        copy=pl.col("haplotype").str.slice(-1),
+    ).partition_by("sample", as_dict=True)
+    shares = {row["sample"]: row for row in local.iter_rows(named=True)}
+    with PdfPages(path) as pdf:
+        for (sample,), rows in sorted(by_sample.items()):
+            kary = pqp.Karyogram(hg38, chroms=chroms, groups=2, copies=2)
+            kary.paint(
+                rows,
+                start="start",
+                end="end",
+                color="ancestry",
+                palette=colors,
+                copy="copy",
+            )
             kary.legend(palette=colors)
-    for ax in axes.flat[len(samples) :]:
-        ax.set_axis_off()
-    pk.save_figure(fig, path)
+            summary = ", ".join(f"{a} {shares[sample][a]:.2f}" for a in colors)
+            kary.figure.suptitle(f"{sample}: {summary}")
+            pdf.savefig(kary.figure)
+            plt.close(kary.figure)
 
 
 def plot_comparison(local, admixture, colors, path):
@@ -256,17 +285,20 @@ def main(argv=None):
     args = build_parser().parse_args(argv)
     names, first = read_msp(args.msp[0])
     samples = sorted({c.rsplit(".", 1)[0] for c in first.columns[3:]})
-    picked = sorted(
-        random.Random(args.seed).sample(samples, min(args.samples, len(samples)))
+    picked = pick(samples, args.samples, args.seed)
+    paged = (
+        samples
+        if args.pdf_samples == "all"
+        else pick(samples, int(args.pdf_samples), args.seed)
     )
-    picked_haplotypes = [f"{s}.{hap}" for s in picked for hap in (0, 1)]
+    haplotypes = [f"{s}.{hap}" for s in sorted({*picked, *paged}) for hap in (0, 1)]
 
-    lengths, picked_tracts = [], []
+    lengths, drawn = [], []
     for path in args.msp:
         _, tracts = read_msp(path)
         lengths.append(tract_lengths(tracts))
-        picked_tracts.append(
-            tracts.select("chrom", "start", "end", *picked_haplotypes).unpivot(
+        drawn.append(
+            tracts.select("chrom", "start", "end", *haplotypes).unpivot(
                 index=["chrom", "start", "end"],
                 variable_name="haplotype",
                 value_name="code",
@@ -277,11 +309,14 @@ def main(argv=None):
 
     pk.use("plain")
     colors = dict(zip(names.values(), pk.PALETTES["plain"].cycle))
-    karyogram_tracts = pl.concat(picked_tracts).with_columns(
-        ancestry=pl.col("code").replace_strict(names)
+    drawn = pl.concat(drawn).with_columns(ancestry=pl.col("code").replace_strict(names))
+    plot_karyograms(drawn, picked, colors, args.karyograms)
+    write_ideogram_pages(
+        drawn.filter(pl.col("haplotype").str.replace(r"\.[01]$", "").is_in(paged)),
+        local,
+        colors,
+        args.ideograms,
     )
-    plot_karyograms(karyogram_tracts, picked, colors, args.karyograms)
-    plot_ideograms(karyogram_tracts, picked, colors, args.ideograms)
     admixture = pl.read_csv(args.admixture, separator="\t")
     plot_comparison(local, admixture, colors, args.comparison)
 
