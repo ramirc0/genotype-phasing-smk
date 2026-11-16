@@ -26,8 +26,7 @@ phasing. `unrelated.txt` filters samples at mapping.
      pass phases against the panel, where panel and cohort haplotypes condition
      each other, and leaves out the sites the panel lacks. The second pass
      phases every site from the cohort alone, holding the first pass's phase
-     fixed as a scaffold, so no site is lost. The SHAPEIT5 docs skip
-     `phase_rare` below 2,000 samples.
+     fixed as a scaffold, so no site is lost.
    - `phase_eagle2` runs Eagle2. It drops the sites the panel lacks, and its
      log counts them. Eagle's auto rule runs one iteration when the cohort is
      under half the panel, which phases each sample against the panel alone.
@@ -79,9 +78,15 @@ singletons:
 - `extract_tracts` keeps the sites at or above `min_maf`, so the Tractor files
   stay the same size.
 
-It needs `phaser: shapeit5`. The SHAPEIT5 docs aim `phase_rare` at cohorts above
-2,000 samples. Smaller cohorts have fewer carriers sharing each rare haplotype,
-so rare-site phase is less accurate than common-site phase.
+It needs `phaser: shapeit5`. The
+[SHAPEIT5 `phase_rare` docs](https://odelaneau.github.io/shapeit/docs/documentation/phase_rare/)
+say:
+
+> We recommend to use phase_rare for datasets with a sample size greater than
+> 2,000 samples. For smaller smaple [sic] sizes, phase_common could do the job.
+
+Smaller cohorts have fewer carriers sharing each rare haplotype, so rare-site
+phase is less accurate than common-site phase.
 
 ## Across the genome
 

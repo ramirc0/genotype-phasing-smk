@@ -1,6 +1,6 @@
 # Rare-variant phasing with SHAPEIT5 phase_rare, on the phaser's scaffold of sites
-# above filters.min_maf. The SHAPEIT5 docs aim it at cohorts above 2,000 samples:
-# smaller cohorts have fewer carriers to share each rare haplotype.
+# above filters.min_maf. The SHAPEIT5 docs recommend it above 2,000 samples, and
+# phase_common below. See docs/PIPELINE.md.
 
 
 # One job per region, run in chunks of chunk_sites prepared sites, each with buffer_bp

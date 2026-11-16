@@ -4,7 +4,7 @@
 # The first pass phases against the panel, where panel and cohort condition each other,
 # and leaves out sites the panel lacks. Those are real variants the panel's QC removed,
 # so a second pass phases every site from the cohort alone, holding the first pass's
-# phase fixed as a scaffold. The SHAPEIT5 docs skip phase_rare below 2,000 samples.
+# phase fixed as a scaffold.
 # Both rules below run it on the span in $REGION. With phase_rare on, it phases only
 # sites above filters.min_maf, and phase_rare phases the rest on this scaffold.
 FILTER_MAF = ["--filter-maf", FILTERS["min_maf"]] if RARE["enabled"] else []
