@@ -14,6 +14,7 @@ rfmix = "*"
 python = "3.13.*"
 polars = "*"
 matplotlib = ">=3.11"
+pypdf = "*"
 
 [pypi-dependencies]
 poikilos = { git = "https://github.com/ramirc0/poikilos" }

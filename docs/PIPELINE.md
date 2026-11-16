@@ -131,6 +131,6 @@ Everything goes under `results/<run_id>/`. Logs and benchmarks go to
 | `local_ancestry_global.tsv` | Genome-wide share per ancestry of each sample, from its tracts |
 | `tracts/<chrom>.anc<i>.{dosage,hapcount}.txt.gz` | Tractor input per ancestry `i`, numbered as in the msp header |
 | `plots/karyograms.{svg,png}` | Local ancestry of 10 random samples |
-| `plots/ideograms.pdf` | One page per sample (`local_ancestry.pdf_samples`): its local ancestry on banded hg38 chromosomes, homologs side by side, with genome-wide shares in the title |
+| `plots/ideograms.pdf` | One page per sample (`local_ancestry.pdf_samples`): its local ancestry on banded hg38 chromosomes, homologs side by side, with genome-wide shares in the title. Each page has a bookmark and a page label named after its sample, so the outline or the page box jumps to a sample. |
 | `plots/global_ancestry.{svg,png}` | Genome-wide shares from local calls against ADMIXTURE |
 | `config.snapshot.json` | The resolved config, `--config` overrides included. Rerun it with `--configfile results/<run_id>/config.snapshot.json`. |

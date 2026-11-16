@@ -7,6 +7,7 @@ from its tracts, with its ADMIXTURE estimate.
 """
 
 import argparse
+import io
 import math
 import random
 import re
@@ -16,6 +17,7 @@ import poikilos as pk
 import polars as pl
 import pqplot as pqp
 from matplotlib.backends.backend_pdf import PdfPages
+from pypdf import PdfWriter
 
 
 def build_parser():
@@ -204,6 +206,9 @@ def plot_karyograms(tracts, samples, colors, path):
 def write_ideogram_pages(tracts, local, colors, path):
     """Write a PDF with one page per sample: its tracts on banded hg38 chromosomes.
 
+    Each page carries a bookmark and a page label named after its sample, so a
+    viewer's outline or page box jumps to a sample.
+
     Parameters
     ----------
     tracts : polars.DataFrame
@@ -223,8 +228,11 @@ def write_ideogram_pages(tracts, local, colors, path):
         copy=pl.col("haplotype").str.slice(-1),
     ).partition_by("sample", as_dict=True)
     shares = {row["sample"]: row for row in local.iter_rows(named=True)}
-    with PdfPages(path) as pdf:
-        for (sample,), rows in sorted(by_sample.items()):
+    samples = sorted(sample for (sample,) in by_sample)
+    pages = io.BytesIO()
+    with PdfPages(pages) as pdf:
+        for sample in samples:
+            rows = by_sample[(sample,)]
             kary = pqp.Karyogram(hg38, chroms=chroms, groups=2, copies=2)
             kary.paint(
                 rows,
@@ -239,6 +247,13 @@ def write_ideogram_pages(tracts, local, colors, path):
             kary.figure.suptitle(f"{sample}: {summary}")
             pdf.savefig(kary.figure)
             plt.close(kary.figure)
+
+    writer = PdfWriter(clone_from=pages)
+    for page, sample in enumerate(samples):
+        writer.add_outline_item(sample, page)
+        writer.set_page_label(page, page, prefix=sample)
+    writer.page_mode = "/UseOutlines"
+    writer.write(path)
 
 
 def plot_comparison(local, admixture, colors, path):
