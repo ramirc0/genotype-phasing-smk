@@ -17,6 +17,7 @@ matplotlib = ">=3.11"
 
 [pypi-dependencies]
 poikilos = { git = "https://github.com/ramirc0/poikilos" }
+pqplot = ">=0.3"
 
 # Rule jobs only save figures. Without this, a job that inherits DISPLAY picks a GUI backend.
 [activation.env]
@@ -52,3 +53,4 @@ htslib = "0d"
 [pypi-exclude-newer]
 certifi = "0d"
 pip = "0d"
+pqplot = "0d"

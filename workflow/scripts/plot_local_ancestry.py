@@ -1,9 +1,9 @@
 """Summarize local ancestry calls and plot them for review.
 
 Ancestry tracts need plausible lengths before mapping. This script draws both
-haplotypes of every chromosome for a few random samples, and compares each
-sample's genome-wide ancestry, summed from its tracts, with its ADMIXTURE
-estimate.
+haplotypes of every chromosome for a few random samples, as plain bars and on
+banded chromosomes, and compares each sample's genome-wide ancestry, summed
+from its tracts, with its ADMIXTURE estimate.
 """
 
 import argparse
@@ -14,6 +14,7 @@ import re
 import matplotlib.pyplot as plt
 import poikilos as pk
 import polars as pl
+import pqplot as pqp
 
 
 def build_parser():
@@ -33,6 +34,7 @@ def build_parser():
         "--global-ancestry", required=True, help="Genome-wide ancestry TSV to write."
     )
     p.add_argument("--karyograms", required=True, help="Karyogram SVG to write.")
+    p.add_argument("--ideograms", required=True, help="Banded karyogram SVG to write.")
     p.add_argument("--comparison", required=True, help="Comparison SVG to write.")
     return p
 
@@ -171,6 +173,45 @@ def plot_karyograms(tracts, samples, colors, path):
     pk.save_figure(fig, path)
 
 
+def plot_ideograms(tracts, samples, colors, path):
+    """Paint each sample's tracts on banded hg38 chromosomes, homologs side by side.
+
+    Parameters
+    ----------
+    tracts : polars.DataFrame
+        Columns `chrom`, `start`, `end`, `haplotype` and `ancestry`.
+    samples : list of str
+        Samples to draw, one karyogram each.
+    colors : dict of str to str
+        Color of each ancestry.
+    path : str
+        SVG to write. The PNG goes beside it.
+    """
+    hg38 = pqp.Genome.bundled("hg38")
+    chroms = [c for c in hg38.autosomes if c in set(tracts.get_column("chrom"))]
+    tracts = tracts.with_columns(copy=pl.col("haplotype").str.slice(-1))
+    nrows = math.ceil(len(samples) / 2)
+    fig, axes = plt.subplots(
+        nrows, 2, figsize=(10, 2.4 * nrows), squeeze=False, layout="constrained"
+    )
+    for ax, sample in zip(axes.flat, samples):
+        kary = pqp.Karyogram(hg38, ax=ax, chroms=chroms, copies=2)
+        kary.paint(
+            tracts.filter(pl.col("haplotype").str.starts_with(f"{sample}.")),
+            start="start",
+            end="end",
+            color="ancestry",
+            palette=colors,
+            copy="copy",
+        )
+        ax.set_title(sample)
+        if ax is axes[0, -1]:
+            kary.legend(palette=colors)
+    for ax in axes.flat[len(samples) :]:
+        ax.set_axis_off()
+    pk.save_figure(fig, path)
+
+
 def plot_comparison(local, admixture, colors, path):
     """Plot each sample's ancestry from its tracts against ADMIXTURE.
 
@@ -240,6 +281,7 @@ def main(argv=None):
         ancestry=pl.col("code").replace_strict(names)
     )
     plot_karyograms(karyogram_tracts, picked, colors, args.karyograms)
+    plot_ideograms(karyogram_tracts, picked, colors, args.ideograms)
     admixture = pl.read_csv(args.admixture, separator="\t")
     plot_comparison(local, admixture, colors, args.comparison)
 

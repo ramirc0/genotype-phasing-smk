@@ -19,7 +19,8 @@ race to install it.
   call that crashes when gnomix deletes its simulated data.
 
 Both workspaces exclude packages published in the last 7 days. The exceptions
-are certifi, bcftools and htslib, so their security fixes land at once.
+are certifi, bcftools and htslib, so their security fixes land at once, and
+pqplot, which this project's author also maintains.
 
 ## Resources
 

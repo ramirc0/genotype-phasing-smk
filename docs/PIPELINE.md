@@ -95,7 +95,10 @@ and the SHAPEIT5 panel code them as diploid.
     The local ancestry query comes from the phased VCF, so samples and
     haplotypes line up. Sites outside every msp window are skipped.
 12. `plot_local_ancestry` draws both haplotypes of every chromosome for 10
-    random samples, so tract lengths can be checked before mapping. It sums
+    random samples, so tract lengths can be checked before mapping. It draws
+    them as plain bars and again on banded hg38 chromosomes with
+    [pqplot](https://github.com/ramirc0/pqplot), where unpainted bands show
+    stretches without calls. It sums
     each sample's tracts into genome-wide shares and plots them against
     ADMIXTURE.
 
@@ -127,5 +130,6 @@ Everything goes under `results/<run_id>/`. Logs and benchmarks go to
 | `local_ancestry_global.tsv` | Genome-wide share per ancestry of each sample, from its tracts |
 | `tracts/<chrom>.anc<i>.{dosage,hapcount}.txt.gz` | Tractor input per ancestry `i`, numbered as in the msp header |
 | `plots/karyograms.{svg,png}` | Local ancestry of 10 random samples |
+| `plots/ideograms.{svg,png}` | The same samples on banded hg38 chromosomes, homologs side by side |
 | `plots/global_ancestry.{svg,png}` | Genome-wide shares from local calls against ADMIXTURE |
 | `config.snapshot.json` | The resolved config, `--config` overrides included. Rerun it with `--configfile results/<run_id>/config.snapshot.json`. |

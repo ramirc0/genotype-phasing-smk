@@ -220,6 +220,8 @@ rule plot_local_ancestry:
         global_ancestry=f"{OUTDIR}/local_ancestry_global.tsv",
         karyograms=f"{OUTDIR}/plots/karyograms.svg",
         karyograms_png=f"{OUTDIR}/plots/karyograms.png",
+        ideograms=f"{OUTDIR}/plots/ideograms.svg",
+        ideograms_png=f"{OUTDIR}/plots/ideograms.png",
         comparison=f"{OUTDIR}/plots/global_ancestry.svg",
         comparison_png=f"{OUTDIR}/plots/global_ancestry.png",
     params:
@@ -240,6 +242,7 @@ rule plot_local_ancestry:
             --seed {params.seed:q} \
             --global-ancestry {output.global_ancestry:q} \
             --karyograms {output.karyograms:q} \
+            --ideograms {output.ideograms:q} \
             --comparison {output.comparison:q}
 
         sync {output:q}
