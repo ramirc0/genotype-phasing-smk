@@ -72,7 +72,7 @@ Christian Ramirez ([@ramirc0](https://github.com/ramirc0))
 
 ## License
 
-MIT. See [LICENSE](LICENSE). `workflow/scripts/vendor/extract_tracts.py` comes
+This project is licensed under the MIT License. See [LICENSE](LICENSE). `workflow/scripts/vendor/extract_tracts.py` comes
 from [Tractor](https://github.com/Atkinson-Lab/Tractor) under its MIT license.
 See [THIRD_PARTY_LICENSES](THIRD_PARTY_LICENSES).
 
