@@ -1,0 +1,11 @@
+--- a/src/laidataset.py
++++ b/src/laidataset.py
+@@ -36,7 +36,7 @@
+     genomic_intervals = genomic_intervals(variants_pos)
+
+     # interpolation
+-    lengths = genomic_intervals[1:] - genomic_intervals[0:-1]
++    lengths = np.clip(genomic_intervals[1:] - genomic_intervals[0:-1], 0, None)
+     bp = lengths / lengths.sum()
+
+     return chm_length_morgans, bp

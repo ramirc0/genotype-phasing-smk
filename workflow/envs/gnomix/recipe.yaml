@@ -1,6 +1,6 @@
 # gnomix has no releases and no packaging, so this installs its scripts at a pinned commit.
 context:
-  version: 0.0.0.20260903
+  version: 0.0.0.20260903.1
   commit: cd15f65eadfca8e2bbf209eb69a82978a200c5fd
 
 package:
@@ -11,8 +11,11 @@ source:
   url: https://github.com/AI-sandbox/gnomix/archive/${{ commit }}.tar.gz
   sha256: 846ef1ba78b569c04acaadf1c6c6e6698de881b005461f9d3ea70bf29bd6b6d8
   # gnomix.py passes verbose= to run_shell_cmd, which takes verb=, so rm_data crashes.
+  # Interpolated cM differences between SNPs in a flat stretch of the map can round to
+  # about -1e-15, and numpy then rejects them as crossover probabilities.
   patches:
     - run-shell-cmd-verb.patch
+    - clip-breakpoint-lengths.patch
 
 build:
   number: 0

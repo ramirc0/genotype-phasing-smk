@@ -1,6 +1,6 @@
 [package]
 name = "gnomix"
-version = "0.0.0.20260903"
+version = "0.0.0.20260903.1"
 
 [package.build]
 backend = { name = "pixi-build-rattler-build", version = "*" }
