@@ -38,6 +38,13 @@ def build_parser():
     )
     p.add_argument("--karyograms", required=True, help="Karyogram SVG to write.")
     p.add_argument(
+        "--colors",
+        nargs="*",
+        default=[],
+        metavar="ANCESTRY=COLOR",
+        help="Color of each ancestry. Default: the theme's color cycle.",
+    )
+    p.add_argument(
         "--pdf-samples",
         default="all",
         help="Samples to give a PDF page: a count, or 'all'.",
@@ -323,7 +330,9 @@ def main(argv=None):
     local.write_csv(args.global_ancestry, separator="\t")
 
     pk.use("plain")
-    colors = dict(zip(names.values(), pk.PALETTES["plain"].cycle))
+    chosen = dict(pair.split("=", 1) for pair in args.colors)
+    cycle = pk.PALETTES["plain"].cycle
+    colors = {name: chosen.get(name, c) for name, c in zip(names.values(), cycle)}
     drawn = pl.concat(drawn).with_columns(ancestry=pl.col("code").replace_strict(names))
     plot_karyograms(drawn, picked, colors, args.karyograms)
     write_ideogram_pages(

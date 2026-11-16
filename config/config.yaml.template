@@ -32,6 +32,7 @@ local_ancestry:
   min_purity: {AFR: 0.9, EUR: 0.9, NAT: 0.8}   # smallest ADMIXTURE share to join the reference
   rfmix_generations: 8   # RFMix2 -G, generations since admixture
   pdf_samples: all       # samples with a page in plots/ideograms.pdf: a count, or all
+  colors: {AFR: "#2e5f77", EUR: "#55b8a0", NAT: "#f0ac3c", CSA: "#67b3d7", EAS: "#9d3e65"}   # optional; default: the theme cycle
 seed: 1
 
 filters:

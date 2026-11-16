@@ -226,6 +226,7 @@ rule plot_local_ancestry:
     params:
         seed=lambda w: config["seed"],
         pdf_samples=lambda w: LAI["pdf_samples"],
+        colors=lambda w: [f"{a}={c}" for a, c in LAI.get("colors", {}).items()],
     log:
         f"{LOGDIR}/plot_local_ancestry.txt",
     benchmark:
@@ -241,6 +242,7 @@ rule plot_local_ancestry:
             --admixture {input.admixture:q} \
             --seed {params.seed:q} \
             --pdf-samples {params.pdf_samples:q} \
+            --colors {params.colors:q} \
             --global-ancestry {output.global_ancestry:q} \
             --karyograms {output.karyograms:q} \
             --ideograms {output.ideograms:q} \

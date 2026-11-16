@@ -62,6 +62,10 @@ if list(LAI["min_purity"]) != list(LAI["populations"]):
         "local_ancestry.min_purity MUST list the ancestries of "
         "local_ancestry.populations, in the same order."
     )
+if "colors" in LAI and not set(LAI["populations"]) <= set(LAI["colors"]):
+    raise WorkflowError(
+        "local_ancestry.colors MUST name every ancestry of local_ancestry.populations."
+    )
 
 
 wildcard_constraints:

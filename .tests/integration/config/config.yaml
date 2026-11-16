@@ -28,6 +28,7 @@ local_ancestry:
   min_purity: {AFR: 0.5, EUR: 0.5, NAT: 0.5}   # the toy span has too few SNPs for the default purity
   rfmix_generations: 8
   pdf_samples: all
+  colors: {AFR: "#2e5f77", EUR: "#55b8a0", NAT: "#f0ac3c", CSA: "#67b3d7", EAS: "#9d3e65"}
 seed: 1
 
 filters:
