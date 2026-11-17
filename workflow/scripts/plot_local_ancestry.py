@@ -100,7 +100,58 @@ def read_msp(path):
     tracts = tracts.drop(tracts.columns[3:6]).rename(
         {"#chm": "chrom", "spos": "start", "epos": "end"}
     )
-    return names, tracts.with_columns(pl.col("chrom").cast(pl.String))
+    return names, tracts.with_columns(
+        pl.col("chrom").cast(pl.String), pl.col(tracts.columns[3:]).cast(pl.Int8)
+    )
+
+
+def sample_tracts(tracts, sample, names):
+    """Gather one sample's tracts from every chromosome.
+
+    Long tables are built one sample at a time, because all haplotypes at once
+    would hold every segment of every haplotype in memory. An msp segment ends
+    wherever any haplotype changes ancestry, so a haplotype's consecutive
+    segments of one ancestry merge into one tract.
+
+    Parameters
+    ----------
+    tracts : list of polars.DataFrame
+        `read_msp` tracts, one per chromosome.
+    sample : str
+        Sample whose tracts to gather.
+    names : dict of int to str
+        Ancestry of each code.
+
+    Returns
+    -------
+    polars.DataFrame
+        Columns `chrom`, `start`, `end`, `copy` (0 or 1) and `ancestry`.
+    """
+    segments = pl.concat(
+        t.select(
+            "chrom",
+            "start",
+            "end",
+            pl.col(f"{sample}.0").alias("0"),
+            pl.col(f"{sample}.1").alias("1"),
+        ).unpivot(
+            index=["chrom", "start", "end"], variable_name="copy", value_name="code"
+        )
+        for t in tracts
+    ).sort("chrom", "copy", "start")
+    changed = pl.col("code") != pl.col("code").shift().over("chrom", "copy")
+    return (
+        segments.with_columns(tract=changed.fill_null(True).cum_sum())
+        .group_by("tract", maintain_order=True)
+        .agg(
+            pl.col("chrom").first(),
+            pl.col("start").first(),
+            pl.col("end").last(),
+            pl.col("copy").first().cast(pl.Int8),
+            pl.col("code").first().replace_strict(names).alias("ancestry"),
+        )
+        .drop("tract")
+    )
 
 
 def tract_lengths(tracts):
@@ -159,31 +210,33 @@ def genome_wide(lengths, names):
     ).sort("sample")
 
 
-def plot_karyograms(tracts, samples, colors, path):
+def plot_karyograms(tracts, samples, names, colors, path):
     """Draw both haplotypes of every chromosome for each sample.
 
     Parameters
     ----------
-    tracts : polars.DataFrame
-        Columns `chrom`, `start`, `end`, `haplotype` and `ancestry`.
+    tracts : list of polars.DataFrame
+        `read_msp` tracts, one per chromosome.
     samples : list of str
         Samples to draw, one panel each.
+    names : dict of int to str
+        Ancestry of each code.
     colors : dict of str to str
         Color of each ancestry.
     path : str
         SVG to write. The PNG goes beside it.
     """
     chroms = sorted(
-        tracts.get_column("chrom").unique(), key=lambda c: int(c.removeprefix("chr"))
+        (t.get_column("chrom")[0] for t in tracts),
+        key=lambda c: int(c.removeprefix("chr")),
     )
     nrows = math.ceil(len(samples) / 2)
     fig, axes = plt.subplots(nrows, 2, figsize=(10, 3.5 * nrows), squeeze=False)
     for ax, sample in zip(axes.flat, samples):
+        own = sample_tracts(tracts, sample, names)
         for row, chrom in enumerate(chroms):
             for hap in (0, 1):
-                spans = tracts.filter(
-                    pl.col("chrom") == chrom, pl.col("haplotype") == f"{sample}.{hap}"
-                )
+                spans = own.filter(pl.col("chrom") == chrom, pl.col("copy") == hap)
                 for ancestry, color in colors.items():
                     ax.broken_barh(
                         [
@@ -210,7 +263,7 @@ def plot_karyograms(tracts, samples, colors, path):
     pk.save_figure(fig, path)
 
 
-def write_ideogram_pages(tracts, local, colors, path):
+def write_ideogram_pages(tracts, samples, names, local, colors, path):
     """Write a PDF with one page per sample: its tracts on banded hg38 chromosomes.
 
     Each page carries a bookmark and a page label named after its sample, so a
@@ -218,9 +271,12 @@ def write_ideogram_pages(tracts, local, colors, path):
 
     Parameters
     ----------
-    tracts : polars.DataFrame
-        Columns `chrom`, `start`, `end`, `haplotype` and `ancestry`. Every sample
-        in it gets a page, in sample order.
+    tracts : list of polars.DataFrame
+        `read_msp` tracts, one per chromosome.
+    samples : list of str
+        Samples to give a page, in page order.
+    names : dict of int to str
+        Ancestry of each code.
     local : polars.DataFrame
         Output of `genome_wide`, for the shares in each page title.
     colors : dict of str to str
@@ -229,20 +285,15 @@ def write_ideogram_pages(tracts, local, colors, path):
         PDF to write.
     """
     hg38 = pqp.Genome.bundled("hg38")
-    chroms = [c for c in hg38.autosomes if c in set(tracts.get_column("chrom"))]
-    by_sample = tracts.with_columns(
-        sample=pl.col("haplotype").str.replace(r"\.[01]$", ""),
-        copy=pl.col("haplotype").str.slice(-1),
-    ).partition_by("sample", as_dict=True)
+    present = {t.get_column("chrom")[0] for t in tracts}
+    chroms = [c for c in hg38.autosomes if c in present]
     shares = {row["sample"]: row for row in local.iter_rows(named=True)}
-    samples = sorted(sample for (sample,) in by_sample)
     pages = io.BytesIO()
     with PdfPages(pages) as pdf:
         for sample in samples:
-            rows = by_sample[(sample,)]
             kary = pqp.Karyogram(hg38, chroms=chroms, groups=2, copies=2)
             kary.paint(
-                rows,
+                sample_tracts(tracts, sample, names),
                 start="start",
                 end="end",
                 color="ancestry",
@@ -313,34 +364,16 @@ def main(argv=None):
         if args.pdf_samples == "all"
         else pick(samples, int(args.pdf_samples), args.seed)
     )
-    haplotypes = [f"{s}.{hap}" for s in sorted({*picked, *paged}) for hap in (0, 1)]
-
-    lengths, drawn = [], []
-    for path in args.msp:
-        _, tracts = read_msp(path)
-        lengths.append(tract_lengths(tracts))
-        drawn.append(
-            tracts.select("chrom", "start", "end", *haplotypes).unpivot(
-                index=["chrom", "start", "end"],
-                variable_name="haplotype",
-                value_name="code",
-            )
-        )
-    local = genome_wide(pl.concat(lengths), names)
+    tracts = [read_msp(path)[1] for path in args.msp]
+    local = genome_wide(pl.concat(tract_lengths(t) for t in tracts), names)
     local.write_csv(args.global_ancestry, separator="\t")
 
     pk.use("plain")
     chosen = dict(pair.split("=", 1) for pair in args.colors)
     cycle = pk.PALETTES["plain"].cycle
     colors = {name: chosen.get(name, c) for name, c in zip(names.values(), cycle)}
-    drawn = pl.concat(drawn).with_columns(ancestry=pl.col("code").replace_strict(names))
-    plot_karyograms(drawn, picked, colors, args.karyograms)
-    write_ideogram_pages(
-        drawn.filter(pl.col("haplotype").str.replace(r"\.[01]$", "").is_in(paged)),
-        local,
-        colors,
-        args.ideograms,
-    )
+    plot_karyograms(tracts, picked, names, colors, args.karyograms)
+    write_ideogram_pages(tracts, paged, names, local, colors, args.ideograms)
     admixture = pl.read_csv(args.admixture, separator="\t")
     plot_comparison(local, admixture, colors, args.comparison)
 
