@@ -56,7 +56,7 @@ set-threads:
   plot_local_ancestry: 1
   extract_tracts: 1
 
-set-resources:              # about twice each rule's peak in the 936-sample run's benchmarks/
+set-resources:              # about twice each rule's peak in the 936-sample runs' benchmarks/, 5-way included
   prepare_genotypes:
     mem_mb: 4000 * attempt
     runtime: 60m
@@ -122,14 +122,14 @@ set-resources:              # about twice each rule's peak in the 936-sample run
     runtime: 30m
   admixture:
     mem_mb: 4000 * attempt
-    runtime: 60m
+    runtime: 120m
     slurm_partition: 4hours,12hours,5days
   select_reference:
     mem_mb: 2000 * attempt
     runtime: 30m
   local_ancestry_rfmix2:
     mem_mb: 8000 * attempt
-    runtime: 60m
+    runtime: 180m
     slurm_partition: 4hours,12hours,5days
   local_ancestry_gnomix:
     mem_mb: 64000 * attempt
@@ -149,8 +149,8 @@ set-resources:              # about twice each rule's peak in the 936-sample run
     slurm_partition: 4hours,12hours,5days
   extract_tracts:
     mem_mb: 2000 * attempt
-    runtime: 180m
-    slurm_partition: 4hours,12hours,5days
+    runtime: 300m
+    slurm_partition: 12hours,5days
 
 rerun-incomplete: true
 keep-going: true
