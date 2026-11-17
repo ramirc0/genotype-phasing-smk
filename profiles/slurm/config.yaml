@@ -75,11 +75,10 @@ set-resources:              # about twice each rule's peak in the 936-sample run
   ligate_chrx:
     mem_mb: 2000 * attempt
     runtime: 30m
-  # No benchmark yet: sized from the scaffold jobs, to tune after the first run.
   phase_rare:
-    mem_mb: 32000 * attempt
-    runtime: 600m
-    slurm_partition: 12hours,5days
+    mem_mb: 8000 * attempt
+    runtime: 150m
+    slurm_partition: 4hours,12hours,5days
   phase_eagle2:
     mem_mb: 64000 * attempt
     runtime: 720m
