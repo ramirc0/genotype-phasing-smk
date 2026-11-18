@@ -24,10 +24,12 @@ pqplot = ">=0.3"
 [activation.env]
 MPLBACKEND = "Agg"
 
-# SHAPEIT5 and Eagle2 pin htslib below 1.25, so they stay out of default.
+# workflow/envs/shapeit5/ builds SHAPEIT5 from a fork that fixes --haploids.
 [feature.shapeit5.dependencies]
-shapeit5 = "*"
+shapeit5 = { path = "shapeit5" }
 bcftools = "*"
+
+# Eagle2 pins htslib below 1.25, so it stays out of default.
 
 [feature.eagle2.dependencies]
 eagle2 = "*"

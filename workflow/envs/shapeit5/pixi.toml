@@ -1,0 +1,6 @@
+[package]
+name = "shapeit5"
+version = "5.1.1.20261118"
+
+[package.build]
+backend = { name = "pixi-build-rattler-build", version = "*" }

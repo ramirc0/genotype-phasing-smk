@@ -1,0 +1,56 @@
+# Released SHAPEIT5 --haploids turns hets into scaffold genotypes, so they pass through as 0|1.
+# This builds a fork that sets them missing, as intended.
+context:
+  version: 5.1.1.20261118
+  commit: 4b36f5f48778d3d35c11a5c85dfc88b7db9fbca0
+
+package:
+  name: shapeit5
+  version: ${{ version }}
+
+source:
+  url: https://github.com/ramirc0/shapeit/archive/${{ commit }}.tar.gz
+  sha256: 271b96efbf5f17bf33a8b1a2d71b61aef0bff977b8b16ebea545e8c5f4b405d2
+
+build:
+  number: 0
+  script:
+    - |
+      for tool in phase_common phase_rare ligate; do
+        make -C $tool -j ${CPU_COUNT} desktop \
+          CXX="${CXX} -std=c++20" \
+          LDFLAG="-O3 ${LDFLAGS}" \
+          COMMIT_VERS=4b36f5f \
+          COMMIT_DATE=2026-11-18 \
+          HTSLIB_INC=$PREFIX/include \
+          HTSLIB_LIB=-lhts \
+          BOOST_INC=$PREFIX/include \
+          BOOST_LIB_IO=-lboost_iostreams \
+          BOOST_LIB_PO=-lboost_program_options \
+          DYN_LIBS="-lz -lpthread -lbz2 -llzma -lcurl -lcrypto -ldeflate"
+        install -D -m 755 $tool/bin/$tool $PREFIX/bin/SHAPEIT5_$tool
+      done
+
+requirements:
+  build:
+    - ${{ compiler('cxx') }}
+    - make
+  host:
+    - htslib
+    - libboost-devel
+    - zlib
+    - bzip2
+    - xz
+    - libcurl
+    - openssl
+    - libdeflate
+
+tests:
+  - script:
+      - test -x $PREFIX/bin/SHAPEIT5_phase_common
+      - test -x $PREFIX/bin/SHAPEIT5_phase_rare
+      - test -x $PREFIX/bin/SHAPEIT5_ligate
+
+about:
+  homepage: https://github.com/ramirc0/shapeit
+  license: MIT

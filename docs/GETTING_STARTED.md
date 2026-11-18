@@ -12,8 +12,10 @@ installs it before the first job, because parallel SLURM jobs would otherwise
 race to install it.
 
 - `default` runs bcftools, plink2, ADMIXTURE, RFMix2 and the Python scripts.
-- `shapeit5` and `eagle2` each hold one phaser, because both pin htslib below
-  1.25.
+- `shapeit5` runs SHAPEIT5, built by `workflow/envs/shapeit5/` from commit
+  `4b36f5f` of the `ramirc0/shapeit` fork. Released SHAPEIT5 keeps the hets of
+  `--haploids` samples as `0|1`, and the fork sets them missing.
+- `eagle2` holds Eagle2 on its own, because it pins htslib below 1.25.
 - `gnomix` runs gnomix, built by `workflow/envs/gnomix/` from upstream commit
   `cd15f65`, because gnomix has no releases or package. The recipe patches one
   call that crashes when gnomix deletes its simulated data.
