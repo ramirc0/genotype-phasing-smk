@@ -25,6 +25,10 @@ px() { pixi exec -c conda-forge -c bioconda -s bcftools==1.25 -s htslib==1.25 -s
 # a sample the test keeps.
 plant_half_call() { awk -F'\t' -v OFS='\t' '!/^#/ && $2 == 2836852 { $5 = $5 ",*"; sub(/^[^:]*/, "1/2", $11) } 1'; }
 
+# Joint genotyping at ploidy 2 calls some hets in samples with one X. Plant one at a
+# common non-PAR site in HG00183, which has one X, so phase_common meets it.
+plant_haploid_het() { awk -F'\t' -v OFS='\t' '!/^#/ && $2 == 2807619 { sub(/^[^:]*/, "0/1", $12) } 1'; }
+
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 mkdir -p resources/panel resources/maps
@@ -78,6 +82,7 @@ px bcftools view -S "$tmp/samples.txt" -r "$chrx_windows" -Ou "$nygc_chrx" \
     | px bcftools +fixploidy -Ou -- -f 2 \
     | px bcftools view \
     | plant_half_call \
+    | plant_haploid_het \
     | px bcftools view -Ob -o "$tmp/chrX.bcf"
 cmp <(px bcftools query -l "$tmp/chr20.bcf") <(px bcftools query -l "$tmp/chrX.bcf")
 px bcftools concat -Ob -o "$tmp/callset.bcf" "$tmp/chr20.bcf" "$tmp/chrX.bcf"

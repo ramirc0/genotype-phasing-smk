@@ -3,13 +3,19 @@
 # phase_common below. See docs/PIPELINE.md.
 
 
+def phaser_input(region):
+    """Return the prepared BCF that SHAPEIT5 phases for a region."""
+    masked = ".masked" if region == "chrX_nonpar" else ""
+    return f"{OUTDIR}/prepare/{region}{masked}.bcf"
+
+
 # One job per region, run in chunks of chunk_sites prepared sites, each with buffer_bp
 # of scaffold on both sides. Chunks never split one position, because split
 # multiallelics share it and would otherwise land in two chunks.
 rule phase_rare:
     input:
-        bcf=f"{OUTDIR}/prepare/{{region}}.bcf",
-        csi=f"{OUTDIR}/prepare/{{region}}.bcf.csi",
+        bcf=lambda w: phaser_input(w.region),
+        csi=lambda w: f"{phaser_input(w.region)}.csi",
         scaffold=f"{SCAFFOLD_DIR}/{{region}}.bcf",
         map=config["genetic_maps"]["shapeit5"],
         haploids=lambda w: (

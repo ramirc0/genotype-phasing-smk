@@ -34,6 +34,6 @@ local_ancestry:
 seed: 1
 
 filters:
-  min_dp: 10
+  min_dp: 5    # one-X samples sit near 15x on the toy non-PAR, so 10 drops most sites
   min_maf: 0.01
   max_missing: 0.05

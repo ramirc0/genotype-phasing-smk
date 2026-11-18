@@ -46,14 +46,18 @@ PAR bounds, because samples with one X are haploid only between them:
   on the prepared non-PAR genotypes. The F-statistic counts X copies, which is
   what phasing needs: XY, XYY and X0 samples come out haploid, and XX, XXY and
   XXX samples diploid. Samples plink2 cannot call stay diploid.
+- `mask_haploid_hets` sets the non-PAR hets and half-calls of haploid samples
+  missing. SHAPEIT5 `--haploids` should do this itself, but in 5.1.1 it turns
+  each het into a scaffold genotype that keeps its input phase.
 - The non-PAR runs in `chrx_chunks.count` chunks of equal site counts that
   overlap by `chrx_chunks.overlap_sites`. With haploid samples, SHAPEIT5's
   memory on the whole non-PAR grows faster than its span, past 243 GB for 936
   samples, against 16 GB for chr1. `phase_chrx_chunk` runs both passes on each
-  chunk and passes the haploid samples to `--haploids`. SHAPEIT5 sets their
-  hets missing and imputes them as homozygous. `ligate_chrx` joins the chunks
-  with `SHAPEIT5_ligate`, which aligns phase on the overlaps.
-- `concat_chrx` joins the three regions before `finalize_phased`.
+  chunk and passes the haploid samples to `--haploids`, so SHAPEIT5 imputes
+  their missing genotypes as homozygous. `ligate_chrx` joins the chunks with
+  `SHAPEIT5_ligate`, which aligns phase on the overlaps.
+- `concat_chrx` checks that no haploid sample keeps a non-PAR het, then joins
+  the three regions before `finalize_phased`.
 - `export_pgen` splits the PARs with `--split-par hg38` and takes the imputed
   sex, so PAR calls stay diploid in every sample.
 
@@ -151,6 +155,7 @@ Everything goes under `results/<run_id>/`. Logs and benchmarks go to
 | Path | Contents |
 |---|---|
 | `prepare/<chrom>.bcf` | Filtered genotypes, the phaser's input |
+| `prepare/chrX_nonpar.masked.bcf` | Non-PAR genotypes with haploid samples' hets set missing, the phaser's chrX non-PAR input |
 | `scaffold/<region>.bcf` | Common-site phase, the `phase_rare` scaffold (`phase_rare.enabled` only) |
 | `phase/<chrom>.bcf` | Phaser output; with chrX, also one file per chrX region, and the non-PAR chunks and their spans in `phase/chrX_nonpar/` |
 | `phased/<chrom>.vcf.gz` | Phased genotypes with recomputed tags and `CHROM:POS:REF:ALT` IDs |
