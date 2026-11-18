@@ -43,42 +43,9 @@ rule infer_x_ploidy:
         """
 
 
-# SHAPEIT5 --haploids means to set these hets missing, but its VAR_SET_MIS only ORs
-# a bit, which turns a het into a scaffold genotype held at its input phase. Half-calls
-# of split multiallelics go missing too, so SHAPEIT5 imputes both as homozygous.
-rule mask_haploid_hets:
-    input:
-        bcf=f"{OUTDIR}/prepare/chrX_nonpar.bcf",
-        csi=f"{OUTDIR}/prepare/chrX_nonpar.bcf.csi",
-        haploids=f"{OUTDIR}/haploid_samples.txt",
-    output:
-        bcf=f"{OUTDIR}/prepare/chrX_nonpar.masked.bcf",
-        csi=f"{OUTDIR}/prepare/chrX_nonpar.masked.bcf.csi",
-    log:
-        f"{LOGDIR}/mask_haploid_hets.txt",
-    benchmark:
-        f"{BENCHDIR}/mask_haploid_hets.tsv"
-    software:
-        SOFTWARE_ENV
-    shell:
-        r"""
-        exec &> >(tee {log:q})
-
-        bcftools +setGT -Ob --output {output.bcf:q} --write-index=csi {input.bcf:q} -- \
-            --target-gt q \
-            --new-gt . \
-            --include 'GT[@{input.haploids}]="het" | GT[@{input.haploids}]="mis"'
-
-        sync {output:q}
-        """
-
-
-# A het left in a sample with one X means its non-PAR haplotypes disagree.
 rule concat_chrx:
     input:
-        regions=[f"{OUTDIR}/phase/{region}.bcf" for region in CHRX_REGIONS],
-        nonpar=f"{OUTDIR}/phase/chrX_nonpar.bcf",
-        haploids=f"{OUTDIR}/haploid_samples.txt",
+        [f"{OUTDIR}/phase/{region}.bcf" for region in CHRX_REGIONS],
     output:
         f"{OUTDIR}/phase/chrX.bcf",
     log:
@@ -91,16 +58,7 @@ rule concat_chrx:
         r"""
         exec &> >(tee {log:q})
 
-        if [[ -s {input.haploids:q} ]]; then
-            hets=$(bcftools view --samples-file {input.haploids:q} -Ou {input.nonpar:q} \
-                | bcftools query --include 'GT="het"' -f '[%SAMPLE\n]' | wc -l)
-            if (( hets > 0 )); then
-                echo "Non-PAR hets in samples with one X: $hets" >&2
-                exit 1
-            fi
-        fi
-
-        bcftools concat -Ob --output {output:q} {input.regions:q}
+        bcftools concat -Ob --output {output:q} {input:q}
 
         sync {output:q}
         """

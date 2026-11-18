@@ -102,11 +102,12 @@ rule chrx_chunks:
         """
 
 
+# SHAPEIT5 sets hets of samples with one X missing and imputes them as homozygous.
 rule phase_chrx_chunk:
     input:
         chunks=f"{SCAFFOLD_DIR}/chrX_nonpar/chunks.txt",
-        bcf=f"{OUTDIR}/prepare/chrX_nonpar.masked.bcf",
-        csi=f"{OUTDIR}/prepare/chrX_nonpar.masked.bcf.csi",
+        bcf=f"{OUTDIR}/prepare/chrX_nonpar.bcf",
+        csi=f"{OUTDIR}/prepare/chrX_nonpar.bcf.csi",
         panel=PANEL.format(region="chrX_nonpar"),
         panel_index=f"{PANEL.format(region='chrX_nonpar')}.csi",
         map=config["genetic_maps"]["shapeit5"].format(region="chrX_nonpar"),
