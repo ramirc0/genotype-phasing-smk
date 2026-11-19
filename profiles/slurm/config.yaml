@@ -133,7 +133,7 @@ set-resources:              # about twice each rule's peak in the 936-sample run
     slurm_partition: 4hours,12hours,5days
   local_ancestry_gnomix:
     mem_mb: 80000 * attempt
-    runtime: 1440m
+    runtime: 2880m
     slurm_partition: 5days
   # No benchmark yet: sized like RFMix2, to tune after the first run.
   local_ancestry_flare:
